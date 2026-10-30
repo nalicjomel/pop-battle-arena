@@ -1,14 +1,11 @@
 // Bump this version every time you update the game so phones fetch the new files.
-const CACHE = 'ball-battle-v2';
+const CACHE = 'ball-battle-v4';
 const CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './vendor/confetti.browser.js',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', e => {
