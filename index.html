@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pop Battle Arena</title>
-
-<!-- PWA Meta Tags at Embedded Manifest --->
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#04050d">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pop Battle">
-<link rel="manifest" href='data:application/manifest+json,{"name":"Pop Battle Arena","short_name":"PopBattle","start_url":"./","display":"standalone","background_color":"#04050d","theme_color":"#04050d","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%2306b6d4%22/><text x=%2250%22 y=%2265%22 font-size=%2245%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22sans-serif%22 font-weight=%22bold%22>🎮</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
-
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;800;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="vendor/confetti.browser.js"></script>
 <style>
 :root{--c1:#06b6d4;--c2:#f97316;--glass:rgba(15,20,40,.72);--line:rgba(255,255,255,.12);--accent:#818cf8}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
@@ -113,8 +113,8 @@ input[type=range]{width:100%;accent-color:#818cf8}
 <body>
 <div id="app">
   <canvas id="c"></canvas>
-  <div id="rhook" class="band">SINO ANG MANANALO?</div>
-  <div id="rcta" class="band"><span id="rcta-t">Comment down. PLAYER 1 vs. PLAYER 2? 👇</span></div>
+  <div id="rhook" class="band">SINO MANANALO?</div>
+  <div id="rcta" class="band"><span id="rcta-t">Comment mo: PLAYER 1 vs. PLAYER 2? 👇</span></div>
 
   <div id="hud"><div class="panel">
     <div class="teams">
@@ -157,7 +157,7 @@ input[type=range]{width:100%;accent-color:#818cf8}
       <label>Isulat lang ang "Pangalan1 vs Pangalan2", awtomatiko nang mapupunan ang dalawang team.</label>
     </div>
     <div class="sec"><h4>📸 Thumbnail</h4>
-      <button class="btn alt" id="mkthumb">📸 Create Thumbnail</button>
+      <button class="btn alt" id="mkthumb">📸 Gumawa ng Thumbnail</button>
       <label>Gagamitin ang pangalan, kulay, title at hook na nilagay mo. Gamitin bago mag-start ng laban.</label>
     </div>
     <div class="sec"><h4>Game Title</h4>
@@ -208,17 +208,6 @@ input[type=range]{width:100%;accent-color:#818cf8}
 </div>
 
 <script>
-// Service Worker Registration para sa PWA
-if ('serviceWorker' in navigator) {
-  const swCode = `
-    self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
-    self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-    self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-  `;
-  const blob = new Blob([swCode], { type: 'text/javascript' });
-  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
-}
-
 const $=id=>document.getElementById(id);
 function setCta(t){const el=$('rcta-t');el.textContent='';t.split('👇').forEach((p,i)=>{if(i){const h=document.createElement('b');h.className='hand';h.textContent='👇';el.appendChild(h)}if(p)el.appendChild(document.createTextNode(p))})}
 function ctaText(){const c=$('in-cta').value.trim();return c||('Comment mo: '+S.t1.name+' vs. '+S.t2.name+'? 👇')}
@@ -250,6 +239,7 @@ let pops=[],rings=[],W=0,H=0,arena={x:0,y:0,r:150},mb={x:0,y:0,vx:0,vy:0,r:18,tr
 function resize(){
   const r=app.getBoundingClientRect(),d=window.devicePixelRatio||1;
   W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);
+  // Reel-safe: ang feed preview ay nagka-crop ng ~15% sa taas at baba, kaya ilagay ang lahat sa gitnang 70%
   const safe=$('safe').checked,top0=safe?H*0.15:0,bot0=safe?H*0.82:H;
   $('hud').style.top=top0+'px';
   const reel=$('reel').checked&&safe;app.classList.toggle('reel',reel);
@@ -258,6 +248,8 @@ function resize(){
     hb.textContent=ht;hb.style.top='0px';hb.style.height=top0+'px';
     hb.style.fontSize=Math.min(top0*.38,W*.92/Math.max(4,ht.length*.62))+'px';
     setCta(ct);$('rcta-t').style.display=ct?'':'none';
+
+
   }
   const L=Math.max(S.t1.name.length,S.t2.name.length,4);
   $('cdvs').style.fontSize=Math.min(54,W*.88/(L*.62))+'px';
@@ -277,7 +269,7 @@ window.addEventListener('resize',resize);
 
 function launchMother(){
   mb.x=arena.x;mb.y=arena.y;mb.r=S.rad;mb.trail=[];
-  const a=Math.PI/2+(Math.random()-.5)*Math.PI/2;
+  const a=Math.PI/2+(Math.random()-.5)*Math.PI/2; // pababa muna: 45°–135°, random kaliwa o kanan
   mb.vx=Math.cos(a)*S.spd;mb.vy=Math.sin(a)*S.spd;
 }
 
@@ -354,7 +346,7 @@ function render(t){
   const rush=S.mult>=2,col=rush?'#ef4444':'#818cf8';
   ctx.save();ctx.beginPath();ctx.arc(arena.x,arena.y,arena.r,0,6.283);ctx.fillStyle='rgba(10,14,34,.75)';ctx.fill();
   ctx.strokeStyle=col;ctx.globalAlpha=.18;ctx.lineWidth=16;ctx.stroke();ctx.globalAlpha=1;ctx.lineWidth=6;ctx.stroke();ctx.restore();
-
+  // Watermark sa loob ng circle: POP / BATTLE / ARENA (mahina lang para hindi matakpan ang mga ball)
   ctx.save();ctx.beginPath();ctx.arc(arena.x,arena.y,arena.r-4,0,6.283);ctx.clip();
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=col;ctx.globalAlpha=.1;
   const wr=arena.r;let ws=(S.title||'').trim().split(/\s+/).filter(Boolean);if(!ws.length)ws=['POP','BATTLE','ARENA'];
@@ -505,6 +497,9 @@ $('tx').onclick=()=>{clearTimeout(tHide);$('thumb').classList.remove('show')};
 $('tshuf').onclick=()=>{tSeed++;drawThumb();armHide()};
 $('tcv').onclick=()=>{const t=$('thumb');if(t.classList.contains('hideui')){t.classList.remove('hideui');armHide()}else{clearTimeout(tHide);t.classList.add('hideui')}};
 window.addEventListener('resize',()=>{if($('thumb').classList.contains('show'))drawThumb()});
+</script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
 </script>
 </body>
 </html>
