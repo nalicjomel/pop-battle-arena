@@ -1,5 +1,5 @@
 // Bump this version every time you update the game so phones fetch the new files.
-const CACHE = 'ball-battle-v4';
+const CACHE = 'ball-battle-v5';
 const CORE = [
   './',
   './index.html',

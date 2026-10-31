@@ -1012,12 +1012,11 @@ function setPP(){$('pp').textContent=S.playing?'⏸ Pause':(S.started?'▶ Resum
 function start(){S.started=true;S.playing=true;$('start').classList.add('hide');setPP();startTimer();
   for(let i=0;i<14;i++)setTimeout(()=>{if(S.playing)spawn(nextTeam())},i*110)}
 let cdBusy=false,cdTok=0;
-function countdown(){if(cdBusy||S.started)return;cdBusy=true;const my=++cdTok,e=$('cdn'),v=$('cdvs');$('start').classList.add('hide');$('sheet').classList.remove('open');v.classList.add('show');let n=3;
-  function show(t,size){e.classList.remove('go');void e.offsetWidth;e.textContent=t;e.style.fontSize=size;e.classList.add('go')}
-  (function tick(){if(my!==cdTok)return;
-    if(n<=0){show('FIGHT!','72px');A.tone(1400,'square',.3,.15,1400);cdBusy=false;start();
-      setTimeout(()=>{if(my===cdTok){e.textContent='';v.classList.remove('show')}},800);return}
-    show(n--,'140px');A.beep();setTimeout(tick,800)})()}
+function countdown(){if(cdBusy||S.started)return;cdBusy=true;const my=++cdTok,e=$('cdn'),v=$('cdvs');$('start').classList.add('hide');$('sheet').classList.remove('open');v.classList.add('show');
+  // No 3-2-1: the battle starts instantly, "FIGHT!" flashes over the action
+  e.classList.remove('go');void e.offsetWidth;e.textContent='FIGHT!';e.style.fontSize='72px';e.classList.add('go');
+  A.tone(1400,'square',.3,.15,1400);cdBusy=false;start();
+  setTimeout(()=>{if(my===cdTok){e.textContent='';v.classList.remove('show')}},800)}
 function pause(){S.playing=false;setPP()}
 function gameOver(){
   S.over=true;S.playing=false;clearInterval(S.timer);
