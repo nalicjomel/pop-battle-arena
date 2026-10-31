@@ -661,7 +661,9 @@ body{display:flex;justify-content:center;padding-top:env(safe-area-inset-top,0px
 .band{position:absolute;left:0;right:0;display:none;align-items:center;justify-content:center;text-align:center;z-index:3;pointer-events:none;padding:0 10px}
 #app.reel .band{display:flex}
 #rhook{font-weight:900;color:#facc15;line-height:1.05;text-transform:uppercase;text-shadow:0 3px 0 rgba(0,0,0,.55),0 0 22px rgba(250,204,21,.45)}
-#app.reel #rhook{align-items:flex-end;padding-bottom:10px}
+#app.reel #rhook{align-items:flex-end;padding-bottom:10px;animation:hookpop 1.4s ease-in-out infinite}
+@keyframes hookpop{50%{transform:scale(1.05)}}
+#rvote-t{display:flex;gap:.9em;align-items:center;white-space:nowrap;font-weight:900;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);border-radius:99px;padding:.25em 1em;text-shadow:0 2px 0 rgba(0,0,0,.5)}
 #rcta span{background:#facc15;color:#14141e;font-weight:900;border-radius:99px;padding:.35em 1.1em;text-transform:uppercase;white-space:nowrap;animation:pop 1.2s ease-in-out infinite}
 @keyframes pop{50%{transform:scale(1.07)}}
 #rcta .hand{display:inline-block;width:1.55em;height:1.55em;line-height:1.55em;text-align:center;border-radius:50%;background:#14141e;margin:-.3em -.55em -.3em .3em;font-size:.9em;vertical-align:middle;text-transform:none}
@@ -737,7 +739,10 @@ input[type=range]{width:100%;accent-color:#818cf8}
 #thumb .tb{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top,0px));display:flex;justify-content:space-between;transition:opacity .25s}
 #thumb .thint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));font-size:12px;font-weight:700;background:rgba(0,0,0,.65);padding:7px 12px;border-radius:99px;white-space:nowrap;transition:opacity .25s}
 #thumb.hideui .tb,#thumb.hideui .thint{opacity:0;pointer-events:none}
-#wcta{font-size:13px;font-weight:800;color:#facc15;opacity:.95}
+#wcta{display:flex;flex-direction:column;align-items:center;gap:8px}
+#wcta small{font-size:14px;font-weight:700;color:#fde68a}
+#wcta b{background:#facc15;color:#14141e;font-weight:900;font-size:26px;border-radius:99px;padding:.3em 1em;text-transform:uppercase;white-space:nowrap;animation:pop 1.2s ease-in-out infinite}
+#wpart2{display:none;font-weight:900;font-size:18px;line-height:1.2;padding:10px 14px;border-radius:16px;border:2px solid #818cf8;background:rgba(99,102,241,.25);word-break:break-word}
 #wscore{margin:4px 0 6px}
 #wscore .big{font-size:64px;font-weight:900;line-height:1;display:flex;justify-content:center;align-items:center;gap:14px}
 #wscore .big i{font-style:normal;opacity:.45;font-size:44px}
@@ -749,6 +754,7 @@ input[type=range]{width:100%;accent-color:#818cf8}
 <div id="app">
   <canvas id="c"></canvas>
   <div id="rhook" class="band">SINO MANANALO?</div>
+  <div id="rvote" class="band"><div id="rvote-t"></div></div>
   <div id="rcta" class="band"><span id="rcta-t">Comment mo: PLAYER 1 vs. PLAYER 2? 👇</span></div>
 
   <div id="hud"><div class="panel">
@@ -820,6 +826,9 @@ input[type=range]{width:100%;accent-color:#818cf8}
       <input type="text" id="in-hook" value="Sino mananalo?" placeholder="Hook text">
       <label>Comment text (bottom)</label>
       <input type="text" id="in-cta" value="" placeholder="Auto: Comment mo: Team 1 vs. Team 2? 👇">
+      <label>Part 2 text (end card)</label>
+      <input type="text" id="in-part2" value="" placeholder="Hal: Part 2: Sinigang vs Nilaga 🍲">
+      <label><input type="checkbox" id="votechk" checked> Reaction vote bar (👍 vs ❤️) sa ibaba</label>
     </div>
     <div class="sec"><h4>Physics</h4>
       <div><div class="row"><span>Mother ball speed</span><span id="v-spd">7</span></div><input type="range" id="spd" min="1" max="30" value="7"></div>
@@ -837,7 +846,8 @@ input[type=range]{width:100%;accent-color:#818cf8}
     <div id="wscore"></div>
     <div id="wname">Winner</div>
     <div id="wmsg">—</div>
-    <div id="wcta">Sino ang susunod na ilalaban? Comment mo! 👇</div>
+    <div id="wcta"><small>Sino ang susunod na ilalaban?</small><b>Comment mo! 👇</b></div>
+    <div id="wpart2"></div>
     <button class="btn alt" id="again">↻ PLAY AGAIN</button>
   </div></div>
 </div>
@@ -881,7 +891,7 @@ function resize(){
   if(reel){
     const ht=$('in-hook').value.trim(),ct=ctaText(),hb=$('rhook'),cb=$('rcta');
     hb.textContent=ht;hb.style.top='0px';hb.style.height=top0+'px';
-    hb.style.fontSize=Math.min(top0*.38,W*.92/Math.max(4,ht.length*.62))+'px';
+    const s1=W*.92/Math.max(4,ht.length*.62),cap=top0*.44;hb.style.fontSize=(s1>=cap?cap:Math.min(cap,s1*1.8))+'px';
     setCta(ct);$('rcta-t').style.display=ct?'':'none';
 
 
@@ -898,7 +908,10 @@ function resize(){
   }else{arena.y=H*0.5;arena.r=Math.min(W*0.43,H*0.3)}
   $('timer').style.top=(safe?top0+hudH+6:arena.y+arena.r+16)+'px';
   if(reel){const cb=$('rcta'),ct=ctaText();cb.style.top=(arena.y+arena.r+10)+'px';cb.style.height='52px';
-    cb.style.fontSize=Math.min(24,W*.9/Math.max(6,ct.length*.72+3))+'px'}
+    cb.style.fontSize=Math.min(24,W*.9/Math.max(6,ct.length*.72+3))+'px';
+    const rv=$('rvote'),rt=$('rvote-t');rv.style.display=$('votechk').checked?'':'none';rt.textContent='';
+    [['👍',S.t1],['❤️',S.t2]].forEach(([e,t])=>{const sp=document.createElement('span');sp.textContent=e+' '+t.name;sp.style.color=t.color;rt.appendChild(sp)});
+    rv.style.top=(bot0+14)+'px';rv.style.height='44px';rv.style.fontSize=Math.min(22,W*.9/((S.t1.name.length+S.t2.name.length+8)*.62))+'px'}
 }
 window.addEventListener('resize',resize);
 
@@ -935,7 +948,7 @@ function spawn(team){
 function physics(){
   if(!S.playing||S.over)return;
   const now=Date.now();
-  if(now-S.lastSpawn>S.rate){const t=nextTeam();spawn(t);if(S.mult>=2)spawn(t===1?2:1);S.lastSpawn=now}
+  if(now-S.lastSpawn>(now<(S.openUntil||0)?Math.min(S.rate,150):S.rate)){const t=nextTeam();spawn(t);if(S.mult>=2)spawn(t===1?2:1);S.lastSpawn=now}
   mb.x+=mb.vx;mb.y+=mb.vy;mb.trail.push({x:mb.x,y:mb.y});if(mb.trail.length>10)mb.trail.shift();
   let dx=mb.x-arena.x,dy=mb.y-arena.y,d=Math.hypot(dx,dy);
   if(d+mb.r>=arena.r){
@@ -1010,6 +1023,9 @@ function hud(){
 // ---- Game flow ----
 function setPP(){$('pp').textContent=S.playing?'⏸ Pause':(S.started?'▶ Resume':'▶ Start')}
 function start(){S.started=true;S.playing=true;$('start').classList.add('hide');setPP();startTimer();
+  if(!S.seeded){S.seeded=true;S.openUntil=Date.now()+3500;
+    for(let i=0;i<24;i++){const t=nextTeam(),a=Math.random()*6.283,d=arena.r*(.3+Math.random()*.45);
+      balls.push({x:arena.x+Math.cos(a)*d,y:arena.y+Math.sin(a)*d,vx:(Math.random()-.5)*1.5,vy:(Math.random()-.5)*1.5,r:S.sr,team:t,color:t===1?S.t1.color:S.t2.color,inArena:true})}}
   for(let i=0;i<14;i++)setTimeout(()=>{if(S.playing)spawn(nextTeam())},i*110)}
 let cdBusy=false,cdTok=0;
 function countdown(){if(cdBusy||S.started)return;cdBusy=true;const my=++cdTok,e=$('cdn'),v=$('cdvs');$('start').classList.add('hide');$('sheet').classList.remove('open');v.classList.add('show');
@@ -1025,6 +1041,8 @@ function gameOver(){
   else{const w=a>b?S.t1:S.t2;$('wname').textContent='🎉 NANALO ANG '+w.name+'!';$('wname').style.color=w.color;
    $('wmsg').textContent=$(a>b?'in-m1':'in-m2').value.trim();$('wmsg').style.color=w.color}
   $('wmsg').style.display=$('wmsg').textContent?'':'none';
+  S.overAt=Date.now();const rl=app.classList.contains('reel'),p2=$('in-part2').value.trim();
+  $('again').style.display=rl?'none':'';$('wpart2').textContent=p2;$('wpart2').style.display=(rl&&p2)?'block':'none';
   const ws=$('wscore');ws.textContent='';
   const big=document.createElement('div');big.className='big';
   [[a,S.t1.color],['-',null],[b,S.t2.color]].forEach(([v,c])=>{const e=document.createElement(c?'span':'i');e.textContent=v;if(c)e.style.color=c;big.appendChild(e)});
@@ -1036,7 +1054,7 @@ function gameOver(){
 }
 function reset(){
   cdTok++;cdBusy=false;$('cdn').textContent='';$('cdvs').classList.remove('show');
-  clearInterval(S.timer);S.t1.score=S.t2.score=0;S.started=S.playing=S.over=false;S.left=S.dur;S.mult=1;S.rate=S.base;
+  clearInterval(S.timer);S.t1.score=S.t2.score=0;S.started=S.playing=S.over=false;S.left=S.dur;S.mult=1;S.rate=S.base;S.seeded=false;
   balls=[];parts=[];pops=[];rings=[];bag=[];S.lead=S.p1=S.p2=0;$('timer').classList.remove('rush');$('start').classList.remove('hide');$('modal').classList.add('hide');
   launchMother();hud();showTime();setPP();
 }
@@ -1059,7 +1077,7 @@ function applyNames(){
   [1,2].forEach(i=>{const n=S['t'+i].name;$('n'+i).textContent=n;$('mu'+i).textContent=n;$('vs'+i).textContent=n});
   resize();
 }
-function colorNames(){[1,2].forEach(i=>{const c=S['t'+i].color;$('mu'+i).style.color=c;$('vs'+i).style.color=c})}
+function colorNames(){document.querySelectorAll('#rvote-t span').forEach((e,i)=>{e.style.color=S['t'+(i+1)].color});[1,2].forEach(i=>{const c=S['t'+i].color;$('mu'+i).style.color=c;$('vs'+i).style.color=c})}
 $('in-match').addEventListener('input',e=>{
   const p=e.target.value.split(/\s+vs\.?\s+/i),a=(p[0]||'').trim(),b=p.slice(1).join(' vs ').trim();
   $('in-n1').value=a;$('in-n2').value=b;
@@ -1069,6 +1087,8 @@ $('in-title').addEventListener('input',e=>{S.title=e.target.value.trim()||'POP B
 
 // ---- Events ----
 $('go').onclick=countdown;$('again').onclick=reset;$('reset').onclick=reset;
+// Reel mode: walang Play Again button; tap kahit saan sa end card para ulitin (pagkatapos ng 1.5s)
+$('modal').onclick=()=>{if(app.classList.contains('reel')&&Date.now()-(S.overAt||0)>1500)reset()};
 $('pp').onclick=()=>S.playing?pause():(S.started?start():countdown());
 $('gear').onclick=()=>$('sheet').classList.add('open');
 $('close').onclick=()=>$('sheet').classList.remove('open');
@@ -1080,7 +1100,7 @@ $('rad').oninput=e=>{S.rad=+e.target.value;mb.r=S.rad;$('v-rad').textContent=S.r
 $('sr').oninput=e=>{S.sr=+e.target.value;$('v-sr').textContent=S.sr;balls.forEach(b=>b.r=S.sr)};
 $('dur').onchange=e=>{S.dur=+e.target.value;reset()};
 $('snd').onchange=e=>{A.on=e.target.checked};
-$('safe').onchange=resize;$('livechk').onchange=resize;$('reel').onchange=resize;$('in-hook').oninput=resize;$('in-cta').oninput=resize;
+$('safe').onchange=resize;$('livechk').onchange=resize;$('reel').onchange=resize;$('votechk').onchange=resize;$('in-hook').oninput=resize;$('in-cta').oninput=resize;
 
 window.onload=()=>{applyNames();launchMother();hud();showTime();requestAnimationFrame(render)};
 
