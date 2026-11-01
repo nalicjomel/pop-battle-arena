@@ -728,7 +728,7 @@ input[type=range]{width:100%;accent-color:#818cf8}
 /* Start hook: lalabas sa unang 3 segundo ng laro para hindi umalis ang viewer */
 #hf{position:absolute;left:0;right:0;z-index:10;display:none;flex-direction:column;align-items:center;gap:6px;pointer-events:none;text-align:center;padding:0 12px}
 #hf.show{display:flex;animation:hfin 3s ease-out both}
-#hf b{display:block;font-weight:900;text-transform:uppercase;line-height:1.05;padding:.15em .6em;border-radius:14px;background:rgba(4,5,13,.72);text-shadow:0 3px 0 rgba(0,0,0,.6)}
+#hf b{display:block;white-space:nowrap;font-weight:900;text-transform:uppercase;line-height:1.05;padding:.15em .6em;border-radius:14px;background:rgba(4,5,13,.72);text-shadow:0 3px 0 rgba(0,0,0,.6)}
 #hf1{color:#fff}#hf2{color:#facc15;text-shadow:0 3px 0 rgba(0,0,0,.6),0 0 22px rgba(250,204,21,.55)}
 @keyframes hfin{0%{opacity:0;transform:scale(.6)}10%{opacity:1;transform:scale(1.08)}16%{transform:scale(1)}82%{opacity:1}100%{opacity:0;transform:scale(1)}}
 #cdn{font-size:140px;line-height:1;font-weight:900;color:#fff;text-shadow:0 5px 0 rgba(0,0,0,.55),0 0 30px #818cf8}
@@ -844,6 +844,8 @@ input[type=range]{width:100%;accent-color:#818cf8}
       <input type="text" id="in-hf1" value="Hulaan mo muna!" placeholder="Hal: Hulaan mo muna!">
       <label>Linya 2</label>
       <input type="text" id="in-hf2" value="Sino ang panalo?" placeholder="Hal: Sino ang panalo?">
+      <label>Teaser bago ang Final Burst (blangko = wala)</label>
+      <input type="text" id="in-hf3" value="Abangan ang final burst!" placeholder="Hal: Abangan ang final burst!">
     </div>
     <div class="sec"><h4>Physics</h4>
       <div><div class="row"><span>Mother ball speed</span><span id="v-spd">7</span></div><input type="range" id="spd" min="1" max="30" value="7"></div>
@@ -852,6 +854,7 @@ input[type=range]{width:100%;accent-color:#818cf8}
       <label>Game duration</label>
       <select id="dur"><option value="30" selected>30 seconds</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option></select>
       <label><input type="checkbox" id="snd" checked> Sound FX</label>
+      <div><div class="row"><span>Volume ng pop</span><span id="v-vol">160%</span></div><input type="range" id="vol" min="50" max="300" value="160"></div>
       <label><input type="checkbox" id="safe" checked> Reel-safe layout (visible in feed preview)</label>
     </div>
   </div>
@@ -874,21 +877,32 @@ function ctaText(){const c=$('in-cta').value.trim();return c||('Comment mo: '+S.
 const COLORS=['#06b6d4','#3b82f6','#8b5cf6','#d946ef','#ec4899','#ef4444','#f97316','#facc15','#84cc16','#22c55e','#14b8a6','#92400e','#ffffff'];
 
 // ---- Sound ----
-const A={ctx:null,on:true,
+const A={ctx:null,on:true,vol:1.6,lastPop:0,
+ bus(){const c=this.ctx;if(!this.mg){this.mg=c.createGain();const k=c.createDynamicsCompressor();k.threshold.value=-14;k.knee.value=12;k.ratio.value=6;k.attack.value=.002;k.release.value=.12;this.mg.connect(k);k.connect(c.destination)}this.mg.gain.value=this.vol;return this.mg},
  tone(f,type,dur,vol,to){if(!this.on)return;try{this.ctx=this.ctx||new(window.AudioContext||window.webkitAudioContext)();const c=this.ctx,o=c.createOscillator(),g=c.createGain(),t=c.currentTime;
-  o.type=type;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(to||f*1.8,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(c.destination);o.start();o.stop(t+dur)}catch(e){}},
- pop(f,type){this.tone(f,type||'sine',.08,.2)},bounce(){this.tone(150,'triangle',.05,.15,60)},
+  o.type=type;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(to||f*1.8,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(this.bus());o.start();o.stop(t+dur)}catch(e){}},
+ pop(f,type){if(!this.on)return;try{this.ctx=this.ctx||new(window.AudioContext||window.webkitAudioContext)();const c=this.ctx,t=c.currentTime;
+  if(c.state==='suspended')c.resume();
+  if(t-this.lastPop<.022)return;this.lastPop=t;
+  const fr=f*(.94+Math.random()*.12),o=c.createOscillator(),g=c.createGain();
+  // "bloop": mabilis na bumabagsak na pitch + malakas na attack
+  o.type=type||'sine';o.frequency.setValueAtTime(fr*2.2,t);o.frequency.exponentialRampToValueAtTime(fr*.7,t+.11);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.9,t+.004);g.gain.exponentialRampToValueAtTime(.001,t+.14);
+  o.connect(g);g.connect(this.bus());o.start(t);o.stop(t+.16);
+  // "click" ng pumuputok na bola
+  this.noise(0,.03,.7,'highpass',2200);
+ }catch(e){}},bounce(){this.tone(150,'triangle',.05,.15,60)},
  beep(){this.tone(1000,'square',.13,.12,1000)},
  noise(delay,dur,vol,type,freq){const c=this.ctx,t=c.currentTime+delay,n=Math.floor(c.sampleRate*dur),b=c.createBuffer(1,n,c.sampleRate),d=b.getChannelData(0);
   for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
-  const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=b;f.type=type;f.frequency.value=freq;g.gain.value=vol;s.connect(f);f.connect(g);g.connect(c.destination);s.start(t)},
+  const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=b;f.type=type;f.frequency.value=freq;g.gain.value=vol;s.connect(f);f.connect(g);g.connect(this.bus());s.start(t)},
  popper(){if(!this.on)return;try{this.ctx=this.ctx||new(window.AudioContext||window.webkitAudioContext)();const c=this.ctx,t=c.currentTime;
   this.noise(0,.18,.9,'lowpass',2500);
-  const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(220,t);o.frequency.exponentialRampToValueAtTime(40,t+.15);g.gain.setValueAtTime(.7,t);g.gain.exponentialRampToValueAtTime(.001,t+.18);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.2);
+  const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(220,t);o.frequency.exponentialRampToValueAtTime(40,t+.15);g.gain.setValueAtTime(.7,t);g.gain.exponentialRampToValueAtTime(.001,t+.18);o.connect(g);g.connect(this.bus());o.start(t);o.stop(t+.2);
   this.noise(.03,.7,.25,'highpass',5000);
   for(let i=0;i<7;i++)this.noise(.12+i*.07+Math.random()*.04,.03,.3,'bandpass',3000+Math.random()*4000);
  }catch(e){}},
- fanfare(){[261.6,329.6,392,523.3].forEach((f,i)=>setTimeout(()=>this.pop(f,'triangle'),i*120))}};
+ fanfare(){[261.6,329.6,392,523.3].forEach((f,i)=>setTimeout(()=>this.tone(f,'triangle',.25,.4,f*1.01),i*120))}};
 
 // ---- State ----
 const S={t1:{name:'PLAYER 1',color:COLORS[9],score:0},t2:{name:'PLAYER 2',color:COLORS[1],score:0},
@@ -922,7 +936,7 @@ function resize(){
     arena.r=Math.max(60,Math.min(W*0.43,avail/2,H*0.3)*0.96);arena.y=areaTop+avail/2;
   }else{arena.y=H*0.5;arena.r=Math.min(W*0.43,H*0.3)}
   $('timer').style.top=(safe?top0+hudH+6:arena.y+arena.r+16)+'px';
-  {const hf=$('hf'),fs=Math.max(16,Math.min(34,W*.062));hf.style.top=Math.max(top0+hudH+44,arena.y-arena.r*1.08)+'px';$('hf1').style.fontSize=fs+'px';$('hf2').style.fontSize=(fs*1.12)+'px'}
+  {const hf=$('hf'),fs=Math.max(16,Math.min(34,W*.062));hf.style.top=Math.max(top0+hudH+44,arena.y-arena.r*1.08)+'px';hf.dataset.fs=fs;fitHook()}
   if(reel){const cb=$('rcta'),ct=ctaText();cb.style.top=(arena.y+arena.r+10)+'px';cb.style.height='52px';
     cb.style.fontSize=Math.min(24,W*.9/Math.max(6,ct.length*.72+3))+'px';
     const rv=$('rvote'),rt=$('rvote-t');rv.style.display=$('votechk').checked?'':'none';rt.textContent='';
@@ -944,6 +958,7 @@ function startTimer(){
   S.timer=setInterval(()=>{
     if(!S.playing||S.over)return;
     S.left--;showTime();
+    const rs=Math.min(45,S.dur*.4);if(S.dur>=20&&S.left===Math.round(rs)+4){const t3=$('in-hf3').value.trim();if(t3)showHook(t3,'',3000)}
     if(S.left<=8&&S.left>=1)A.beep();else if(S.left<=0)A.popper();
     const rushStart=Math.min(45,S.dur*.4),rushMax=Math.min(20,S.dur*.17);
     if(S.left<=rushMax)S.mult=3.5;else if(S.left<=rushStart)S.mult=2;
@@ -1039,11 +1054,12 @@ function hud(){
 // ---- Game flow ----
 function setPP(){$('pp').textContent=S.playing?'⏸ Pause':(S.started?'▶ Resume':'▶ Start')}
 let hfTimer=0;
+function fitHook(){const hf=$('hf'),fs=+hf.dataset.fs||24;[['hf1',1],['hf2',1.12]].forEach(([id,m])=>{const e=$(id),n=Math.max(6,e.textContent.length);e.style.fontSize=Math.min(fs*m,(W*.88)/(n*.66))+'px'})}
 function hideHook(){clearTimeout(hfTimer);$('hf').classList.remove('show')}
-function showHook(){hideHook();if(!$('hfchk').checked)return;
-  const a=$('in-hf1').value.trim(),b=$('in-hf2').value.trim();if(!a&&!b)return;
-  $('hf1').textContent=a;$('hf1').style.display=a?'':'none';$('hf2').textContent=b;$('hf2').style.display=b?'':'none';
-  const hf=$('hf');void hf.offsetWidth;hf.classList.add('show');hfTimer=setTimeout(hideHook,3000)}
+function showHook(a,b,ms){hideHook();if(!$('hfchk').checked)return;
+  if(a===undefined){a=$('in-hf1').value.trim();b=$('in-hf2').value.trim()}if(!a&&!b)return;ms=ms||3000;
+  $('hf1').textContent=a;$('hf1').style.display=a?'':'none';$('hf2').textContent=b;$('hf2').style.display=b?'':'none';fitHook();
+  const hf=$('hf');void hf.offsetWidth;hf.style.animationDuration=ms+'ms';hf.classList.add('show');hfTimer=setTimeout(hideHook,ms)}
 function start(){S.started=true;S.playing=true;$('start').classList.add('hide');setPP();startTimer();
   if(!S.seeded){S.seeded=true;showHook();S.openUntil=Date.now()+3500;
     for(let i=0;i<24;i++){const t=nextTeam(),a=Math.random()*6.283,d=arena.r*(.3+Math.random()*.45);
@@ -1122,7 +1138,8 @@ $('rad').oninput=e=>{S.rad=+e.target.value;mb.r=S.rad;$('v-rad').textContent=S.r
 $('sr').oninput=e=>{S.sr=+e.target.value;$('v-sr').textContent=S.sr;balls.forEach(b=>b.r=S.sr)};
 $('dur').onchange=e=>{S.dur=+e.target.value;reset()};
 $('snd').onchange=e=>{A.on=e.target.checked};
-$('safe').onchange=resize;$('livechk').onchange=resize;$('reel').onchange=resize;$('votechk').onchange=resize;$('in-hook').oninput=resize;$('in-hf1').oninput=resize;$('in-hf2').oninput=resize;$('in-cta').oninput=resize;
+$('vol').oninput=e=>{A.vol=e.target.value/100;$('v-vol').textContent=e.target.value+'%';if(A.mg)A.mg.gain.value=A.vol};
+$('safe').onchange=resize;$('livechk').onchange=resize;$('reel').onchange=resize;$('votechk').onchange=resize;$('in-hook').oninput=resize;$('in-hf1').oninput=resize;$('in-hf3').oninput=resize;$('in-hf2').oninput=resize;$('in-cta').oninput=resize;
 
 window.onload=()=>{applyNames();launchMother();hud();showTime();requestAnimationFrame(render)};
 
