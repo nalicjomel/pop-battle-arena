@@ -1152,35 +1152,75 @@ function drawThumb(){
   const dpr=Math.min(window.devicePixelRatio||1,3);cv.width=W*dpr;cv.height=H*dpr;
   const x=cv.getContext('2d');x.scale(dpr,dpr);
   const c1=S.t1.color,c2=S.t2.color,R=rng(tSeed),yd=px=>H*.56-H*.12*(px/W),F='Outfit,system-ui,sans-serif';
+  const cx=W/2,cy0=yd(W/2),mr=W*.12;
+  /* Layout: lahat ng importante ay nasa gitnang 70% (safe sa feed crop) */
+  const Y={title:.145,hook:.24,n1:.375,n2:.625,vote:.78};
+  /* 1. Background: dalawang kulay na kalahati, hiwalay ng diagonal */
   x.fillStyle='#070914';x.fillRect(0,0,W,H);
-  let g=x.createLinearGradient(0,0,0,H*.56);g.addColorStop(0,c1+'55');g.addColorStop(1,c1+'dd');
+  let g=x.createLinearGradient(0,0,0,H*.56);g.addColorStop(0,c1+'55');g.addColorStop(1,c1+'f0');
   x.fillStyle=g;x.beginPath();x.moveTo(0,0);x.lineTo(W,0);x.lineTo(W,yd(W));x.lineTo(0,yd(0));x.closePath();x.fill();
-  g=x.createLinearGradient(0,H*.44,0,H);g.addColorStop(0,c2+'dd');g.addColorStop(1,c2+'55');
+  g=x.createLinearGradient(0,H*.44,0,H);g.addColorStop(0,c2+'f0');g.addColorStop(1,c2+'55');
   x.fillStyle=g;x.beginPath();x.moveTo(0,yd(0));x.lineTo(W,yd(W));x.lineTo(W,H);x.lineTo(0,H);x.closePath();x.fill();
+  /* 2. Sunburst na lumalabas sa VS para may energy */
+  x.save();x.beginPath();x.rect(0,0,W,H);x.clip();
+  const N=14,len=Math.hypot(W,H),rot=.2;
+  for(let i=0;i<N;i++){const a0=rot+i/N*6.2832,a1=a0+3.1416/N;
+    x.fillStyle='rgba(255,255,255,.075)';x.beginPath();x.moveTo(cx,cy0);
+    x.lineTo(cx+Math.cos(a0)*len,cy0+Math.sin(a0)*len);x.lineTo(cx+Math.cos(a1)*len,cy0+Math.sin(a1)*len);x.closePath();x.fill()}
+  g=x.createRadialGradient(cx,cy0,0,cx,cy0,W*.75);g.addColorStop(0,'rgba(255,255,255,.28)');g.addColorStop(1,'rgba(255,255,255,0)');
+  x.fillStyle=g;x.fillRect(0,0,W,H);x.restore();
+  /* 3. Mga bola: sa gilid lang at sa pagitan ng text, para hindi nakakagulo sa pangalan */
+  const bands=[[.115,.17],[.185,.295],[.31,.44],[.56,.69],[.745,.82]];
+  const free=(bx,by,r)=>!bands.some(([a,b])=>by+r>H*a&&by-r<H*b&&bx+r>W*.04&&bx-r<W*.96)&&Math.hypot(bx-cx,by-cy0)>mr*1.55+r;
   const ball=(bx,by,r,c)=>{const q=x.createRadialGradient(bx-r*.35,by-r*.35,r*.08,bx,by,r);
     q.addColorStop(0,'rgba(255,255,255,.95)');q.addColorStop(.3,c);q.addColorStop(1,'rgba(0,0,0,.6)');
-    x.fillStyle=q;x.beginPath();x.arc(bx,by,r,0,7);x.fill();x.strokeStyle='rgba(255,255,255,.35)';x.lineWidth=1.5;x.stroke()};
-  for(let i=0;i<56;i++){const top=i%2===0,r=W*(.022+R()*.04),bx=r+R()*(W-2*r),own=R()<.75;
-    const col=top?(own?c1:c2):(own?c2:c1),y0=top?r:yd(bx)+r+4,y1=top?yd(bx)-r-4:H-r;
-    if(y1>y0)ball(bx,y0+R()*(y1-y0),r,col)}
+    x.save();x.shadowColor='rgba(0,0,0,.35)';x.shadowBlur=r*.5;x.shadowOffsetY=r*.15;
+    x.fillStyle=q;x.beginPath();x.arc(bx,by,r,0,7);x.fill();x.restore();
+    x.strokeStyle='rgba(255,255,255,.3)';x.lineWidth=1.2;x.beginPath();x.arc(bx,by,r,0,7);x.stroke()};
+  let placed=0;
+  for(let i=0;i<260&&placed<34;i++){const r=W*(.02+R()*.038),bx=r+R()*(W-2*r),by=r+R()*(H-2*r),ly=yd(bx);
+    if(Math.abs(by-ly)<r+8||!free(bx,by,r))continue;
+    const top=by<ly,own=R()<.75;ball(bx,by,r,top?(own?c1:c2):(own?c2:c1));placed++}
+  /* 4. Diagonal na hati na may glow */
   x.save();x.shadowColor='#facc15';x.shadowBlur=18;x.strokeStyle='#fff';x.lineWidth=6;
   x.beginPath();x.moveTo(0,yd(0));x.lineTo(W,yd(W));x.stroke();x.restore();
+  /* 5. Vignette: pinapadilim ang gilid para lumabas ang gitna */
+  g=x.createRadialGradient(cx,H*.5,H*.22,cx,H*.5,H*.78);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.5)');
+  x.fillStyle=g;x.fillRect(0,0,W,H);
+  /* 6. Text */
   x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
-  const txt=(t,cx,cy,sz,fill,glow)=>{x.font='900 '+sz+'px '+F;x.save();x.lineWidth=sz*.2;x.strokeStyle='#000';x.strokeText(t,cx,cy);
-    x.shadowColor=glow||'transparent';x.shadowBlur=glow?sz*.3:0;x.shadowOffsetY=glow?sz*.06:0;x.fillStyle=fill;x.fillText(t,cx,cy);x.restore()};
-  const cy0=yd(W/2),title=(S.title||'POP BATTLE ARENA').toUpperCase();
-  txt(title,W/2,H*.15,Math.min(W*.075,W*.82/(title.length*.62)),'#fff');
-  const nm=(n,c,cy)=>{const L=nameLines(n),m=Math.max(...L.map(l=>l.length)),sz=Math.min(L.length>1?W*.17:W*.21,W*.9/(m*.6));
-    L.forEach((l,i)=>txt(l,W/2,cy+(i-(L.length-1)/2)*sz*.95,sz,'#fff',c))};
-  nm(S.t1.name,c1,cy0-H*.17);nm(S.t2.name,c2,cy0+H*.17);
-  const mr=W*.15;x.save();x.shadowColor='#facc15';x.shadowBlur=30;
-  const mg=x.createRadialGradient(W/2-mr*.3,cy0-mr*.3,mr*.1,W/2,cy0,mr);mg.addColorStop(0,'#fff');mg.addColorStop(1,'#cbd5e1');
-  x.fillStyle=mg;x.beginPath();x.arc(W/2,cy0,mr,0,7);x.fill();x.lineWidth=mr*.14;x.strokeStyle='#f5b301';x.stroke();x.restore();
-  x.font='900 '+mr*.95+'px '+F;x.fillStyle='#111';x.fillText('VS',W/2,cy0+mr*.04);
+  const txt=(t,tx,ty,sz,fill,glow)=>{x.font='900 '+sz+'px '+F;x.save();x.lineWidth=sz*.18;x.strokeStyle='#000';x.strokeText(t,tx,ty);
+    x.shadowColor=glow||'transparent';x.shadowBlur=glow?sz*.35:0;x.shadowOffsetY=glow?sz*.05:0;x.fillStyle=fill;x.fillText(t,tx,ty);x.restore()};
+  const meas=(t,sz)=>{x.font='900 '+sz+'px '+F;return x.measureText(t).width};
+  const fit=(t,maxW)=>100*maxW/Math.max(1,meas(t,100));
+  /* Title: maliit, isang linya */
+  const title=(S.title||'POP BATTLE ARENA').toUpperCase();
+  txt(title,cx,H*Y.title,Math.min(W*.05,fit(title,W*.8),W*.05),'rgba(255,255,255,.92)');
+  /* Hook: sa taas, madilim na pill na may dilaw na border para kita kahit anong kulay ng team */
   const hk=($('in-hook').value||'').trim().toUpperCase();
-  if(hk){const sz=Math.min(W*.06,W*.78/(hk.length*.6));x.font='900 '+sz+'px '+F;const w=x.measureText(hk).width+sz*1.8,h=sz*2.1;
-    x.fillStyle='#facc15';x.beginPath();if(x.roundRect)x.roundRect(W/2-w/2,H*.86-h/2,w,h,h/2);else x.rect(W/2-w/2,H*.86-h/2,w,h);x.fill();
-    x.fillStyle='#111';x.fillText(hk,W/2,H*.86+sz*.04)}
+  if(hk){const sz=Math.min(W*.072,fit(hk,W*.7)),w=meas(hk,sz)+sz*1.8,h=sz*2.2,hy=H*Y.hook;
+    x.save();x.shadowColor='rgba(250,204,21,.6)';x.shadowBlur=sz*.6;x.fillStyle='rgba(8,10,24,.9)';x.beginPath();
+    if(x.roundRect)x.roundRect(cx-w/2,hy-h/2,w,h,h/2);else x.rect(cx-w/2,hy-h/2,w,h);x.fill();x.lineWidth=3;x.strokeStyle='#facc15';x.stroke();x.restore();
+    x.font='900 '+sz+'px '+F;x.fillStyle='#facc15';x.fillText(hk,cx,hy+sz*.04)}
+  /* Pangalan: isang linya, parehong laki, hindi lalagpas sa 80% ng lapad. Hahatiin lang kapag sobrang haba. */
+  const n1=S.t1.name.toUpperCase(),n2=S.t2.name.toUpperCase(),maxW=W*.8;
+  const one=Math.min(W*.115,fit(n1,maxW),fit(n2,maxW));
+  const two=one<W*.062&&(n1.includes(' ')||n2.includes(' '));
+  const L1=two?nameLines(n1):[n1],L2=two?nameLines(n2):[n2];
+  const fs=Math.min(two?W*.095:W*.115,...L1.concat(L2).map(l=>fit(l,maxW)));
+  const nm=(L,c,cy)=>L.forEach((l,i)=>txt(l,cx,cy+(i-(L.length-1)/2)*fs*1.02,fs,'#fff',c));
+  nm(L1,c1,H*Y.n1);nm(L2,c2,H*Y.n2);
+  /* VS badge */
+  x.save();x.shadowColor='#facc15';x.shadowBlur=30;
+  const mg=x.createRadialGradient(cx-mr*.3,cy0-mr*.3,mr*.1,cx,cy0,mr);mg.addColorStop(0,'#fff');mg.addColorStop(1,'#cbd5e1');
+  x.fillStyle=mg;x.beginPath();x.arc(cx,cy0,mr,0,7);x.fill();x.lineWidth=mr*.14;x.strokeStyle='#f5b301';x.stroke();x.restore();
+  x.font='900 '+mr*.95+'px '+F;x.fillStyle='#111';x.fillText('VS',cx,cy0+mr*.04);
+  /* Vote hint sa ibaba: 👍 team 1  ❤️ team 2 */
+  if($('votechk').checked){const a='👍 '+n1,b='❤️ '+n2,gap=1.4;
+    let sz=Math.min(W*.046,100*(W*.84)/(meas(a,100)+meas(b,100)+140));const wa=meas(a,sz),wb=meas(b,sz),tot=wa+wb+sz*gap,pw=tot+sz*1.8,ph=sz*2.1,vy=H*Y.vote;
+    x.save();x.fillStyle='rgba(8,10,24,.78)';x.strokeStyle='rgba(255,255,255,.3)';x.lineWidth=1.5;x.beginPath();
+    if(x.roundRect)x.roundRect(cx-pw/2,vy-ph/2,pw,ph,ph/2);else x.rect(cx-pw/2,vy-ph/2,pw,ph);x.fill();x.stroke();
+    x.textAlign='left';x.font='900 '+sz+'px '+F;x.fillStyle=c1;x.fillText(a,cx-tot/2,vy+sz*.04);x.fillStyle=c2;x.fillText(b,cx-tot/2+wa+sz*gap,vy+sz*.04);x.restore()}
 }
 let tHide=0;function armHide(){clearTimeout(tHide);tHide=setTimeout(()=>$('thumb').classList.add('hideui'),3000)}
 function openThumb(){$('sheet').classList.remove('open');const t=$('thumb');t.classList.remove('hideui');t.classList.add('show');drawThumb();armHide();
