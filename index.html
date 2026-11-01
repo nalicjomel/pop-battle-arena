@@ -725,6 +725,12 @@ input[type=range]{width:100%;accent-color:#818cf8}
 #live{position:absolute;left:14px;z-index:6;display:flex;align-items:center;gap:6px;padding:4px 11px 4px 9px;border-radius:99px;background:#dc2626;font-weight:900;font-size:12px;letter-spacing:2px;box-shadow:0 0 14px rgba(220,38,38,.6);pointer-events:none}
 #live i{width:8px;height:8px;border-radius:50%;background:#fff;animation:blink 1s steps(1) infinite}
 #cd{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:none;text-align:center;padding:0 12px}
+/* Start hook: lalabas sa unang 3 segundo ng laro para hindi umalis ang viewer */
+#hf{position:absolute;left:0;right:0;z-index:10;display:none;flex-direction:column;align-items:center;gap:6px;pointer-events:none;text-align:center;padding:0 12px}
+#hf.show{display:flex;animation:hfin 3s ease-out both}
+#hf b{display:block;font-weight:900;text-transform:uppercase;line-height:1.05;padding:.15em .6em;border-radius:14px;background:rgba(4,5,13,.72);text-shadow:0 3px 0 rgba(0,0,0,.6)}
+#hf1{color:#fff}#hf2{color:#facc15;text-shadow:0 3px 0 rgba(0,0,0,.6),0 0 22px rgba(250,204,21,.55)}
+@keyframes hfin{0%{opacity:0;transform:scale(.6)}10%{opacity:1;transform:scale(1.08)}16%{transform:scale(1)}82%{opacity:1}100%{opacity:0;transform:scale(1)}}
 #cdn{font-size:140px;line-height:1;font-weight:900;color:#fff;text-shadow:0 5px 0 rgba(0,0,0,.55),0 0 30px #818cf8}
 #cdn.go{animation:cdpop .8s ease-out both}
 @keyframes cdpop{0%{transform:scale(2.4);opacity:0}25%{transform:scale(1);opacity:1}100%{transform:scale(.85);opacity:.9}}
@@ -767,6 +773,8 @@ input[type=range]{width:100%;accent-color:#818cf8}
 
   <div id="live"><i></i>LIVE</div>
   <div id="cd"><div class="vsbox" id="cdvs"><b id="vs1"></b><em>VS</em><b id="vs2"></b></div><div id="cdn"></div></div>
+
+  <div id="hf"><b id="hf1"></b><b id="hf2"></b></div>
 
   <div id="timer"><span id="time">02:00</span><div id="burst">🔥 FINAL BURST!</div></div>
 
@@ -829,6 +837,13 @@ input[type=range]{width:100%;accent-color:#818cf8}
       <label>Part 2 text (end card)</label>
       <input type="text" id="in-part2" value="" placeholder="Hal: Part 2: Sinigang vs Nilaga 🍲">
       <label><input type="checkbox" id="votechk" checked> Reaction vote bar (👍 vs ❤️) sa ibaba</label>
+    </div>
+    <div class="sec"><h4>Start Hook (unang 3 segundo)</h4>
+      <label><input type="checkbox" id="hfchk" checked> Maglabas ng hook text pagka-START</label>
+      <label>Linya 1</label>
+      <input type="text" id="in-hf1" value="Hulaan mo muna!" placeholder="Hal: Hulaan mo muna!">
+      <label>Linya 2</label>
+      <input type="text" id="in-hf2" value="Sino ang panalo?" placeholder="Hal: Sino ang panalo?">
     </div>
     <div class="sec"><h4>Physics</h4>
       <div><div class="row"><span>Mother ball speed</span><span id="v-spd">7</span></div><input type="range" id="spd" min="1" max="30" value="7"></div>
@@ -907,6 +922,7 @@ function resize(){
     arena.r=Math.max(60,Math.min(W*0.43,avail/2,H*0.3)*0.96);arena.y=areaTop+avail/2;
   }else{arena.y=H*0.5;arena.r=Math.min(W*0.43,H*0.3)}
   $('timer').style.top=(safe?top0+hudH+6:arena.y+arena.r+16)+'px';
+  {const hf=$('hf'),fs=Math.max(16,Math.min(34,W*.062));hf.style.top=Math.max(top0+hudH+44,arena.y-arena.r*1.08)+'px';$('hf1').style.fontSize=fs+'px';$('hf2').style.fontSize=(fs*1.12)+'px'}
   if(reel){const cb=$('rcta'),ct=ctaText();cb.style.top=(arena.y+arena.r+10)+'px';cb.style.height='52px';
     cb.style.fontSize=Math.min(24,W*.9/Math.max(6,ct.length*.72+3))+'px';
     const rv=$('rvote'),rt=$('rvote-t');rv.style.display=$('votechk').checked?'':'none';rt.textContent='';
@@ -1022,8 +1038,14 @@ function hud(){
 
 // ---- Game flow ----
 function setPP(){$('pp').textContent=S.playing?'⏸ Pause':(S.started?'▶ Resume':'▶ Start')}
+let hfTimer=0;
+function hideHook(){clearTimeout(hfTimer);$('hf').classList.remove('show')}
+function showHook(){hideHook();if(!$('hfchk').checked)return;
+  const a=$('in-hf1').value.trim(),b=$('in-hf2').value.trim();if(!a&&!b)return;
+  $('hf1').textContent=a;$('hf1').style.display=a?'':'none';$('hf2').textContent=b;$('hf2').style.display=b?'':'none';
+  const hf=$('hf');void hf.offsetWidth;hf.classList.add('show');hfTimer=setTimeout(hideHook,3000)}
 function start(){S.started=true;S.playing=true;$('start').classList.add('hide');setPP();startTimer();
-  if(!S.seeded){S.seeded=true;S.openUntil=Date.now()+3500;
+  if(!S.seeded){S.seeded=true;showHook();S.openUntil=Date.now()+3500;
     for(let i=0;i<24;i++){const t=nextTeam(),a=Math.random()*6.283,d=arena.r*(.3+Math.random()*.45);
       balls.push({x:arena.x+Math.cos(a)*d,y:arena.y+Math.sin(a)*d,vx:(Math.random()-.5)*1.5,vy:(Math.random()-.5)*1.5,r:S.sr,team:t,color:t===1?S.t1.color:S.t2.color,inArena:true})}}
   for(let i=0;i<14;i++)setTimeout(()=>{if(S.playing)spawn(nextTeam())},i*110)}
@@ -1053,7 +1075,7 @@ function gameOver(){
   setTimeout(()=>A.fanfare(),1000);$('modal').classList.remove('hide');
 }
 function reset(){
-  cdTok++;cdBusy=false;$('cdn').textContent='';$('cdvs').classList.remove('show');
+  hideHook();cdTok++;cdBusy=false;$('cdn').textContent='';$('cdvs').classList.remove('show');
   clearInterval(S.timer);S.t1.score=S.t2.score=0;S.started=S.playing=S.over=false;S.left=S.dur;S.mult=1;S.rate=S.base;S.seeded=false;
   balls=[];parts=[];pops=[];rings=[];bag=[];S.lead=S.p1=S.p2=0;$('timer').classList.remove('rush');$('start').classList.remove('hide');$('modal').classList.add('hide');
   launchMother();hud();showTime();setPP();
@@ -1100,7 +1122,7 @@ $('rad').oninput=e=>{S.rad=+e.target.value;mb.r=S.rad;$('v-rad').textContent=S.r
 $('sr').oninput=e=>{S.sr=+e.target.value;$('v-sr').textContent=S.sr;balls.forEach(b=>b.r=S.sr)};
 $('dur').onchange=e=>{S.dur=+e.target.value;reset()};
 $('snd').onchange=e=>{A.on=e.target.checked};
-$('safe').onchange=resize;$('livechk').onchange=resize;$('reel').onchange=resize;$('votechk').onchange=resize;$('in-hook').oninput=resize;$('in-cta').oninput=resize;
+$('safe').onchange=resize;$('livechk').onchange=resize;$('reel').onchange=resize;$('votechk').onchange=resize;$('in-hook').oninput=resize;$('in-hf1').oninput=resize;$('in-hf2').oninput=resize;$('in-cta').oninput=resize;
 
 window.onload=()=>{applyNames();launchMother();hud();showTime();requestAnimationFrame(render)};
 
