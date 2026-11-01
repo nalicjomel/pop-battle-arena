@@ -1,5 +1,5 @@
 // Bump this version every time you update the game so phones fetch the new files.
-const CACHE = 'ball-battle-v6';
+const CACHE = 'ball-battle-v7';
 const CORE = [
   './',
   './index.html',
@@ -9,7 +9,8 @@ const CORE = [
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
+  // cache:'reload' = laging kunin ang bagong file mula sa GitHub, hindi sa lumang browser cache
+  e.waitUntil(caches.open(CACHE).then(c => Promise.all(CORE.map(u => fetch(new Request(u, { cache: 'reload' })).then(r => c.put(u, r))))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -40,7 +41,7 @@ self.addEventListener('fetch', e => {
 
   // Own files: network first (so updates show up), fall back to cache offline
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-cache' })
       .then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r; })
       .catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
   );
