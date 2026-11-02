@@ -695,8 +695,10 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
  background:var(--glass);border:1px solid var(--line);text-shadow:0 0 16px #818cf8;font-variant-numeric:tabular-nums}
 #timer.rush #time{color:#ff5a5a;text-shadow:0 0 18px #ef4444;animation:pulse .7s infinite}
 #burst{display:none;position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;margin-top:2px;font-weight:800;font-size:13px;letter-spacing:2px;color:#ff6b6b}
-#timer.rush #burst{display:block}
+#timer.fb #burst{display:block}
 @keyframes pulse{50%{transform:scale(1.08)}}
+.lgbtns{display:flex;gap:8px}.lgbtns .btn{width:auto;margin:0}.sec label.lgbtn{flex:1;text-align:center;cursor:pointer;opacity:1;font-size:13px;padding:11px}.lgbtns button{flex:0 0 48px;padding:11px 0}.lgbtns button.lgp{flex:1;font-size:13px}
+.sec label.lgst{font-size:11px}
 #fab{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:10;transition:opacity .3s}
 #fab.dim{opacity:0}
 .round{width:46px;height:46px;border-radius:50%;font-size:20px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -816,6 +818,12 @@ input[type=range]{width:100%;accent-color:#818cf8}
     <div class="sec"><h4>📸 Thumbnail</h4>
       <button class="btn alt" id="mkthumb">📸 Gumawa ng Thumbnail</button>
       <label>Gagamitin ang pangalan, kulay, title at hook na nilagay mo. Gamitin bago mag-start ng laban.</label>
+      <label>Logo ng Team 1 (lalabas sa thumbnail)</label>
+      <div class="lgbtns"><label class="btn dark lgbtn">📁 Pumili ng logo<input type="file" accept="image/*" id="lg-f1" hidden></label><button class="btn dark lgp" id="lg-p1">📋 I-paste</button><button class="btn dark" id="lg-x1" title="Alisin">✕</button></div>
+      <label class="lgst" id="lg-st1"></label>
+      <label>Logo ng Team 2 (lalabas sa thumbnail)</label>
+      <div class="lgbtns"><label class="btn dark lgbtn">📁 Pumili ng logo<input type="file" accept="image/*" id="lg-f2" hidden></label><button class="btn dark lgp" id="lg-p2">📋 I-paste</button><button class="btn dark" id="lg-x2" title="Alisin">✕</button></div>
+      <label class="lgst" id="lg-st2"></label>
     </div>
     <div class="sec"><h4>Game Title</h4>
       <input type="text" id="in-title" value="POP BATTLE ARENA" placeholder="Game name">
@@ -844,7 +852,7 @@ input[type=range]{width:100%;accent-color:#818cf8}
       <input type="text" id="in-cta" value="" placeholder="Auto: Comment mo: Team 1 vs. Team 2? 👇">
       <label>Part 2 text (end card)</label>
       <input type="text" id="in-part2" value="" placeholder="Hal: Part 2: Sinigang vs Nilaga 🍲">
-      <label><input type="checkbox" id="votechk" checked> Reaction vote bar (👍 vs ❤️) sa ibaba</label>
+      <label><input type="checkbox" id="votechk" checked> Reaction vote bar (👍 vs ❤️) sa video, wala na ito sa thumbnail</label>
     </div>
     <div class="sec"><h4>Start Hook (unang 3 segundo)</h4>
       <label><input type="checkbox" id="hfchk" checked> Maglabas ng hook text pagka-START</label>
@@ -923,17 +931,20 @@ const S={t1:{name:'PLAYER 1',color:COLORS[9],score:0},t2:{name:'PLAYER 2',color:
 const cv=$('c'),ctx=cv.getContext('2d'),app=$('app');
 let pops=[],rings=[],W=0,H=0,arena={x:0,y:0,r:150},mb={x:0,y:0,vx:0,vy:0,r:18,trail:[]},balls=[],parts=[];
 
+// YouTube Shorts safe zone: ang UI ng app ay tumatakip sa taas (~15%) at baba (~20%). Dito ito ina-adjust.
+const SAFE_TOP=.15,SAFE_BOT=.80;
 function resize(){
   const r=app.getBoundingClientRect(),d=window.devicePixelRatio||1;
   W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);
   // Reel-safe: ang feed preview ay nagka-crop ng ~15% sa taas at baba, kaya ilagay ang lahat sa gitnang 70%
-  const safe=$('safe').checked,top0=safe?H*0.15:0,bot0=safe?H*0.82:H;
+  const safe=$('safe').checked,top0=safe?H*SAFE_TOP:0,bot0=safe?H*SAFE_BOT:H;
   $('hud').style.top=top0+'px';
   const reel=$('reel').checked&&safe;app.classList.toggle('reel',reel);
   if(reel){
     const ht=$('in-hook').value.trim(),ct=ctaText(),hb=$('rhook'),cb=$('rcta');
-    hb.textContent=ht;hb.style.top='0px';hb.style.height=top0+'px';
-    const s1=W*.92/Math.max(4,ht.length*.62),cap=top0*.44;hb.style.fontSize=(s1>=cap?cap:Math.min(cap,s1*1.8))+'px';
+    const hbTop=top0*.42,hbH=top0-hbTop; // ibinaba ang hook palayo sa top UI ng Shorts
+    hb.textContent=ht;hb.style.top=hbTop+'px';hb.style.height=hbH+'px';
+    const s1=W*.92/Math.max(4,ht.length*.62),cap=hbH*.7;hb.style.fontSize=(s1>=cap?cap:Math.min(cap,s1*1.8))+'px';
     setCta(ct);$('rcta-t').style.display=ct?'':'none';
 
 
@@ -945,16 +956,16 @@ function resize(){
   $('live').style.top=(top0+hudH+6)+'px';$('live').style.display=$('livechk').checked?'flex':'none';
   arena.x=W/2;
   if(safe){
-    const areaTop=top0+hudH+72,avail=(bot0-(reel?50:20))-areaTop;
+    const areaTop=top0+hudH+72,avail=(bot0-(reel?($('votechk').checked?84:50):20))-areaTop;
     arena.r=Math.max(60,Math.min(W*0.43,avail/2,H*0.3)*0.96);arena.y=areaTop+avail/2;
   }else{arena.y=H*0.5;arena.r=Math.min(W*0.43,H*0.3)}
   $('timer').style.top=(safe?top0+hudH+6:arena.y+arena.r+16)+'px';
   {const hf=$('hf'),fs=Math.max(16,Math.min(34,W*.062));hf.style.top=Math.max(top0+hudH+44,arena.y-arena.r*1.08)+'px';hf.dataset.fs=fs;fitHook()}
-  if(reel){const cb=$('rcta'),ct=ctaText();cb.style.top=(arena.y+arena.r+10)+'px';cb.style.height='52px';
+  if(reel){const cb=$('rcta'),ct=ctaText();cb.style.top=(arena.y+arena.r+6)+'px';cb.style.height='40px';
     cb.style.fontSize=Math.min(24,W*.9/Math.max(6,ct.length*.72+3))+'px';
     const rv=$('rvote'),rt=$('rvote-t');rv.style.display=$('votechk').checked?'':'none';rt.textContent='';
     [['👍',S.t1],['❤️',S.t2]].forEach(([e,t])=>{const sp=document.createElement('span');sp.textContent=e+' '+t.name;sp.style.color=t.color;sp.classList.toggle('dk',dark(t.color));rt.appendChild(sp)});
-    rv.style.top=(bot0+14)+'px';rv.style.height='44px';rv.style.fontSize=Math.min(22,W*.9/((S.t1.name.length+S.t2.name.length+8)*.62))+'px'}
+    rv.style.top=(bot0-32)+'px';rv.style.height='30px';rv.style.fontSize=Math.min(17,W*.9/((S.t1.name.length+S.t2.name.length+8)*.62))+'px'}
 }
 window.addEventListener('resize',resize);
 
@@ -967,6 +978,10 @@ function launchMother(){
 // ---- Timer ----
 const SLOW_AT=3,SLOW_TS=.3; // ilang segundo bago matapos ang slow-mo, at gaano kabagal (0.3 = 30% bilis)
 function showTime(){const m=Math.floor(S.left/60),s=S.left%60;$('time').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+// Final Burst timing (segundo na natitira).
+// 30s: bilis x2 sa 12s, teaser sa 10s, FINAL BURST (label + x3.5) sa huling 6s. Ibang haba: dating timing.
+function burstPlan(d){if(d<=30)return{warm:12,hi:6,label:6,teaser:10};
+  const rs=Math.min(45,d*.4),rm=Math.min(20,d*.17);return{warm:rs,hi:rm,label:rs,teaser:Math.round(rs)+4}}
 function startTimer(){
   clearInterval(S.timer);
   S.timer=setInterval(()=>{
@@ -977,11 +992,11 @@ function startTimer(){
      const slow=$('slowchk').checked&&S.dur>=20&&S.left<=SLOW_AT&&S.left>=1&&close;
      S.tsT=slow?SLOW_TS:1;app.classList.toggle('slowmo',slow);
      if(slow)$('burst').textContent='😱 DIKIT! SLOW-MO';}
-    const rs=Math.min(45,S.dur*.4);if(S.dur>=20&&S.left===Math.round(rs)+4){const t3=$('in-hf3').value.trim();if(t3)showHook(t3,'',3000)}
+    const BP=burstPlan(S.dur);if(S.dur>=20&&S.left===BP.teaser){const t3=$('in-hf3').value.trim();if(t3)showHook(t3,'',3000)}
     if(S.left<=8&&S.left>=1)A.beep();else if(S.left<=0)A.popper();
-    const rushStart=Math.min(45,S.dur*.4),rushMax=Math.min(20,S.dur*.17);
-    if(S.left<=rushMax)S.mult=3.5;else if(S.left<=rushStart)S.mult=2;
+    if(S.left<=BP.hi)S.mult=3.5;else if(S.left<=BP.warm)S.mult=2;
     if(S.mult>=2)$('timer').classList.add('rush');
+    if(S.left<=BP.label)$('timer').classList.add('fb');
     S.rate=Math.max(120,S.base/S.mult);
     if(S.left<=0)gameOver();
   },1000);
@@ -1116,7 +1131,7 @@ function gameOver(){
 function reset(){
   hideHook();cdTok++;cdBusy=false;$('cdn').textContent='';$('cdvs').classList.remove('show');
   clearInterval(S.timer);S.t1.score=S.t2.score=0;S.started=S.playing=S.over=false;S.left=S.dur;S.mult=1;S.rate=S.base;S.seeded=false;S.ts=S.tsT=1;app.classList.remove('slowmo');$('burst').textContent='🔥 FINAL BURST!';
-  balls=[];parts=[];pops=[];rings=[];bag=[];S.lead=S.p1=S.p2=0;$('timer').classList.remove('rush');$('start').classList.remove('hide');$('modal').classList.add('hide');
+  balls=[];parts=[];pops=[];rings=[];bag=[];S.lead=S.p1=S.p2=0;$('timer').classList.remove('rush','fb');$('start').classList.remove('hide');$('modal').classList.add('hide');
   launchMother();hud();showTime();setPP();
 }
 
@@ -1137,7 +1152,7 @@ function setColor(id,c){
 
 function applyNames(){
   [1,2].forEach(i=>{const n=S['t'+i].name;$('n'+i).textContent=n;$('mu'+i).textContent=n;$('vs'+i).textContent=n});
-  resize();
+  resize();scheduleLogos();
 }
 function colorNames(){document.querySelectorAll('#rvote-t span').forEach((e,i)=>{const c=S['t'+(i+1)].color;e.style.color=c;e.classList.toggle('dk',dark(c))});[1,2].forEach(i=>{const c=S['t'+i].color,d=dark(c);$('mu'+i).style.color=c;$('vs'+i).style.color=c;$('mu'+i).classList.toggle('dk',d);$('vs'+i).classList.toggle('dk',d)})}
 $('in-match').addEventListener('input',e=>{
@@ -1167,6 +1182,48 @@ $('safe').onchange=resize;$('livechk').onchange=resize;$('reel').onchange=resize
 
 window.onload=()=>{applyNames();launchMother();hud();showTime();requestAnimationFrame(render)};
 
+/* ===== LOGOS (thumbnail) =====
+   Pagkakasunod: 1) logong in-upload (naka-save sa browser, ayon sa pangalan)  2) file sa logos/<pangalan>.png
+   Hal: "Globe" -> logos/globe.png, "Smart" -> logos/smart.png (lowercase, walang space/simbolo) */
+const LOGO={1:null,2:null},LTOK={1:0,2:0};
+const slug=n=>String(n||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
+const logoSt=(id,t)=>{const e=$('lg-st'+id);if(e)e.textContent=t};
+const redrawThumb=()=>{if($('thumb').classList.contains('show'))drawThumb()};
+let lgT=0;function scheduleLogos(){clearTimeout(lgT);lgT=setTimeout(()=>{loadLogo(1);loadLogo(2)},350)}
+function loadLogo(id){
+  const key=slug(S['t'+id].name),tok=++LTOK[id];LOGO[id]=null;
+  if(!key||key==='player'+id){logoSt(id,'Ilagay muna ang pangalan ng team.');redrawThumb();return}
+  const ok=(im,msg)=>{if(LTOK[id]!==tok)return;LOGO[id]=im;logoSt(id,msg);redrawThumb()};
+  const fromFile=()=>{const im=new Image();im.onload=()=>ok(im,'✓ Gamit: logos/'+key+'.png');
+    im.onerror=()=>{if(LTOK[id]===tok){logoSt(id,'Walang logo. Mag-upload, o ilagay ang file sa logos/'+key+'.png');redrawThumb()}};im.src='logos/'+key+'.png'};
+  let d=null;try{d=localStorage.getItem('pba_logo:'+key)}catch(e){}
+  if(d){const im=new Image();im.onload=()=>ok(im,'✓ Naka-save na logo (in-upload mo)');im.onerror=fromFile;im.src=d}else fromFile();
+}
+function saveLogo(id,file){
+  const key=slug(S['t'+id].name);if(!file||!key||key==='player'+id){logoSt(id,'Ilagay muna ang pangalan ng team bago mag-upload.');return}
+  const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{
+    const m=Math.min(1,512/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(im.naturalWidth*m));c.height=Math.max(1,Math.round(im.naturalHeight*m));
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    try{localStorage.setItem('pba_logo:'+key,c.toDataURL('image/png'))}catch(e){logoSt(id,'Hindi ma-save sa browser, pero gagamitin ngayon lang.');LOGO[id]=im;redrawThumb();return}
+    loadLogo(id)};im.src=fr.result};fr.readAsDataURL(file)}
+async function pasteLogo(id){
+  try{const items=await navigator.clipboard.read();
+    for(const it of items){const t=it.types.find(x=>x.startsWith('image/'));if(t){saveLogo(id,await it.getType(t));return}}
+    logoSt(id,'Walang larawan sa clipboard. Mag-copy muna ng picture.')
+  }catch(e){logoSt(id,'Hindi mabasa ang clipboard. Gamitin ang 📁 Pumili, o Ctrl+V.')}}
+// Ctrl+V / paste kahit saan: mapupunta sa unang team na walang logo (kung may logo na ang dalawa, salitan)
+let lastPaste=2;
+document.addEventListener('paste',e=>{
+  const it=[...(e.clipboardData&&e.clipboardData.items||[])].find(i=>i.type.startsWith('image/'));if(!it)return;
+  e.preventDefault();const id=!LOGO[1]?1:!LOGO[2]?2:(lastPaste=3-lastPaste);saveLogo(id,it.getAsFile());
+  $('sheet').classList.add('open')});
+[1,2].forEach(id=>{
+  $('lg-p'+id).onclick=()=>pasteLogo(id);
+  $('lg-f'+id).onchange=e=>{saveLogo(id,e.target.files[0]);e.target.value=''};
+  $('lg-x'+id).onclick=()=>{const key=slug(S['t'+id].name);try{localStorage.removeItem('pba_logo:'+key)}catch(e){}loadLogo(id)};
+});
+
 /* ===== THUMBNAIL GENERATOR ===== */
 let tSeed=7;
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -1178,7 +1235,8 @@ function drawThumb(){
   const c1=S.t1.color,c2=S.t2.color,R=rng(tSeed),yd=px=>H*.56-H*.12*(px/W),F='Outfit,system-ui,sans-serif';
   const cx=W/2,cy0=yd(W/2),mr=W*.12;
   /* Layout: lahat ng importante ay nasa gitnang 70% (safe sa feed crop) */
-  const Y={title:.145,hook:.24,n1:.375,n2:.625,vote:.78};
+  const hasLogo=!!(LOGO[1]||LOGO[2]);
+  const Y=hasLogo?{title:.145,hook:.235,l1:.325,n1:.41,n2:.59,l2:.675}:{title:.145,hook:.24,n1:.375,n2:.625};
   /* 1. Background: dalawang kulay na kalahati, hiwalay ng diagonal */
   x.fillStyle='#070914';x.fillRect(0,0,W,H);
   let g=x.createLinearGradient(0,0,0,H*.56);g.addColorStop(0,c1+'55');g.addColorStop(1,c1+'f0');
@@ -1194,7 +1252,7 @@ function drawThumb(){
   g=x.createRadialGradient(cx,cy0,0,cx,cy0,W*.75);g.addColorStop(0,'rgba(255,255,255,.28)');g.addColorStop(1,'rgba(255,255,255,0)');
   x.fillStyle=g;x.fillRect(0,0,W,H);x.restore();
   /* 3. Mga bola: sa gilid lang at sa pagitan ng text, para hindi nakakagulo sa pangalan */
-  const bands=[[.115,.17],[.185,.295],[.31,.44],[.56,.69],[.745,.82]];
+  const bands=hasLogo?[[.115,.17],[.185,.29],[.28,.455],[.545,.725]]:[[.115,.17],[.185,.295],[.31,.44],[.56,.69]];
   const free=(bx,by,r)=>!bands.some(([a,b])=>by+r>H*a&&by-r<H*b&&bx+r>W*.04&&bx-r<W*.96)&&Math.hypot(bx-cx,by-cy0)>mr*1.55+r;
   const ball=(bx,by,r,c)=>{const q=x.createRadialGradient(bx-r*.35,by-r*.35,r*.08,bx,by,r);
     q.addColorStop(0,'rgba(255,255,255,.95)');q.addColorStop(.3,c);q.addColorStop(1,'rgba(0,0,0,.6)');
@@ -1239,14 +1297,16 @@ function drawThumb(){
   const mg=x.createRadialGradient(cx-mr*.3,cy0-mr*.3,mr*.1,cx,cy0,mr);mg.addColorStop(0,'#fff');mg.addColorStop(1,'#cbd5e1');
   x.fillStyle=mg;x.beginPath();x.arc(cx,cy0,mr,0,7);x.fill();x.lineWidth=mr*.14;x.strokeStyle='#f5b301';x.stroke();x.restore();
   x.font='900 '+mr*.95+'px '+F;x.fillStyle='#111';x.fillText('VS',cx,cy0+mr*.04);
-  /* Vote hint sa ibaba: 👍 team 1  ❤️ team 2 */
-  if($('votechk').checked){const a='👍 '+n1,b='❤️ '+n2,gap=1.4;
-    let sz=Math.min(W*.046,100*(W*.84)/(meas(a,100)+meas(b,100)+140));const wa=meas(a,sz),wb=meas(b,sz),tot=wa+wb+sz*gap,pw=tot+sz*1.8,ph=sz*2.1,vy=H*Y.vote;
-    x.save();x.fillStyle='rgba(8,10,24,.78)';x.strokeStyle='rgba(255,255,255,.3)';x.lineWidth=1.5;x.beginPath();
-    if(x.roundRect)x.roundRect(cx-pw/2,vy-ph/2,pw,ph,ph/2);else x.rect(cx-pw/2,vy-ph/2,pw,ph);x.fill();x.stroke();
-    x.textAlign='left';x.font='900 '+sz+'px '+F;x.lineJoin='round';x.lineWidth=sz*.14;x.strokeStyle='#fff';
-    if(dark(c1))x.strokeText(a,cx-tot/2,vy+sz*.04);x.fillStyle=c1;x.fillText(a,cx-tot/2,vy+sz*.04);
-    if(dark(c2))x.strokeText(b,cx-tot/2+wa+sz*gap,vy+sz*.04);x.fillStyle=c2;x.fillText(b,cx-tot/2+wa+sz*gap,vy+sz*.04);x.restore()}
+  /* Logo: puting rounded badge, nasa itaas ng pangalan ng Team 1 at ibaba ng pangalan ng Team 2 */
+  const logo=(im,ly,c)=>{if(!im||!im.naturalWidth)return;
+    const ph=Math.min(W*.15,H*.075),pad=ph*.14,ar=im.naturalWidth/im.naturalHeight,pmax=W*.42;
+    let ih=ph-pad*2,iw=ih*ar;if(iw>pmax-pad*2){iw=pmax-pad*2;ih=iw/ar}
+    const pw=Math.max(ph,iw+pad*2),h2=ih+pad*2,bx=cx-pw/2,by=ly-h2/2,rad=Math.min(h2*.3,26);
+    const path=()=>{x.beginPath();if(x.roundRect)x.roundRect(bx,by,pw,h2,rad);else x.rect(bx,by,pw,h2)};
+    x.save();x.shadowColor='rgba(0,0,0,.5)';x.shadowBlur=20;x.shadowOffsetY=6;x.fillStyle='#fff';path();x.fill();x.restore();
+    x.save();x.lineWidth=4;x.strokeStyle=gc(c);path();x.stroke();x.restore();
+    x.drawImage(im,cx-iw/2,ly-ih/2,iw,ih)};
+  if(hasLogo){logo(LOGO[1],H*Y.l1,c1);logo(LOGO[2],H*Y.l2,c2)}
 }
 let tHide=0;function armHide(){clearTimeout(tHide);tHide=setTimeout(()=>$('thumb').classList.add('hideui'),3000)}
 function openThumb(){$('sheet').classList.remove('open');const t=$('thumb');t.classList.remove('hideui');t.classList.add('show');drawThumb();armHide();
