@@ -695,10 +695,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
  background:var(--glass);border:1px solid var(--line);text-shadow:0 0 16px #818cf8;font-variant-numeric:tabular-nums}
 #timer.rush #time{color:#ff5a5a;text-shadow:0 0 18px #ef4444;animation:pulse .7s infinite}
 #burst{display:none;position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;margin-top:2px;font-weight:800;font-size:13px;letter-spacing:2px;color:#ff6b6b}
-#timer.fb #burst{display:block}
+#timer.rush #burst{display:block}
 @keyframes pulse{50%{transform:scale(1.08)}}
-.lgbtns{display:flex;gap:8px}.lgbtns .btn{width:auto;margin:0}.sec label.lgbtn{flex:1;text-align:center;cursor:pointer;opacity:1;font-size:13px;padding:11px}.lgbtns button{flex:0 0 48px;padding:11px 0}.lgbtns button.lgp{flex:1;font-size:13px}
-.sec label.lgst{font-size:11px}
 #fab{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:10;transition:opacity .3s}
 #fab.dim{opacity:0}
 .round{width:46px;height:46px;border-radius:50%;font-size:20px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -818,12 +816,6 @@ input[type=range]{width:100%;accent-color:#818cf8}
     <div class="sec"><h4>📸 Thumbnail</h4>
       <button class="btn alt" id="mkthumb">📸 Gumawa ng Thumbnail</button>
       <label>Gagamitin ang pangalan, kulay, title at hook na nilagay mo. Gamitin bago mag-start ng laban.</label>
-      <label>Logo ng Team 1 (lalabas sa thumbnail)</label>
-      <div class="lgbtns"><label class="btn dark lgbtn">📁 Pumili ng logo<input type="file" accept="image/*" id="lg-f1" hidden></label><button class="btn dark lgp" id="lg-p1">📋 I-paste</button><button class="btn dark" id="lg-x1" title="Alisin">✕</button></div>
-      <label class="lgst" id="lg-st1"></label>
-      <label>Logo ng Team 2 (lalabas sa thumbnail)</label>
-      <div class="lgbtns"><label class="btn dark lgbtn">📁 Pumili ng logo<input type="file" accept="image/*" id="lg-f2" hidden></label><button class="btn dark lgp" id="lg-p2">📋 I-paste</button><button class="btn dark" id="lg-x2" title="Alisin">✕</button></div>
-      <label class="lgst" id="lg-st2"></label>
     </div>
     <div class="sec"><h4>Game Title</h4>
       <input type="text" id="in-title" value="POP BATTLE ARENA" placeholder="Game name">
@@ -831,12 +823,16 @@ input[type=range]{width:100%;accent-color:#818cf8}
     <div class="sec"><h4>Team 1</h4>
       <input type="text" id="in-n1" value="" placeholder="Ilagay ang pangalan ng Player 1">
       <div class="sw" id="sw1"></div>
+      <label>Logo ng Team 1 para sa thumbnail (optional)</label>
+      <input type="file" accept="image/*" id="logo1"> <button type="button" id="logox1">✕ Alisin</button>
       <label>Text when Team 1 wins</label>
       <input type="text" id="in-m1" value="" placeholder="Walang text kung blangko (optional)">
     </div>
     <div class="sec"><h4>Team 2</h4>
       <input type="text" id="in-n2" value="" placeholder="Ilagay ang pangalan ng Player 2">
       <div class="sw" id="sw2"></div>
+      <label>Logo ng Team 2 para sa thumbnail (optional)</label>
+      <input type="file" accept="image/*" id="logo2"> <button type="button" id="logox2">✕ Alisin</button>
       <label>Text when Team 2 wins</label>
       <input type="text" id="in-m2" value="" placeholder="Walang text kung blangko (optional)">
     </div>
@@ -847,21 +843,23 @@ input[type=range]{width:100%;accent-color:#818cf8}
       <label><input type="checkbox" id="reel" checked> Fill empty top/bottom (needs Reel-safe layout)</label>
       <label><input type="checkbox" id="livechk"> Show LIVE badge (lagyan lang kung totoong live)</label>
       <label>Hook text (top)</label>
-      <input type="text" id="in-hook" value="Sino mananalo?" placeholder="Hook text">
+      <input type="text" id="in-hook" value="{t1} O {t2}? WAG KANG DUDUWAG" placeholder="Hook text (pwede ang {t1} at {t2})">
       <label>Comment text (bottom)</label>
       <input type="text" id="in-cta" value="" placeholder="Auto: Comment mo: Team 1 vs. Team 2? 👇">
       <label>Part 2 text (end card)</label>
       <input type="text" id="in-part2" value="" placeholder="Hal: Part 2: Sinigang vs Nilaga 🍲">
-      <label><input type="checkbox" id="votechk" checked> Reaction vote bar (👍 vs ❤️) sa video, wala na ito sa thumbnail</label>
+      <label><input type="checkbox" id="votechk" checked> Reaction vote bar (👍 vs ❤️) sa ibaba</label>
     </div>
     <div class="sec"><h4>Start Hook (unang 3 segundo)</h4>
       <label><input type="checkbox" id="hfchk" checked> Maglabas ng hook text pagka-START</label>
       <label>Linya 1</label>
-      <input type="text" id="in-hf1" value="Hulaan mo muna!" placeholder="Hal: Hulaan mo muna!">
+      <input type="text" id="in-hf1" value="Pustahan, mali ang hula mo 😏" placeholder="Hal: Pustahan, mali ang hula mo">
       <label>Linya 2</label>
-      <input type="text" id="in-hf2" value="Sino ang panalo?" placeholder="Hal: Sino ang panalo?">
-      <label>Teaser bago ang Final Burst (blangko = wala)</label>
-      <input type="text" id="in-hf3" value="Abangan ang final burst!" placeholder="Hal: Abangan ang final burst!">
+      <input type="text" id="in-hf2" value="{t1} o {t2}? Pumili ka na!" placeholder="Pwede ang {t1} at {t2}">
+      <label>Hook sa gitna, bago ang Final Burst (blangko = wala)</label>
+      <input type="text" id="in-hf3" value="Teka, parang may daya dito ah 😳" placeholder="Hal: Teka, parang may daya dito ah">
+      <label>Hook sa SLOW-MO, huling 3 segundo (lalabas lang kapag dikit)</label>
+      <input type="text" id="in-hf4" value="Bumaliktad sa huli! Sino ang kinampihan mo? 👇" placeholder="Hal: Bumaliktad sa huli! Sino ang kinampihan mo?">
     </div>
     <div class="sec"><h4>Physics</h4>
       <div><div class="row"><span>Mother ball speed</span><span id="v-spd">7</span></div><input type="range" id="spd" min="1" max="30" value="7"></div>
@@ -891,7 +889,9 @@ input[type=range]{width:100%;accent-color:#818cf8}
 <script>
 const $=id=>document.getElementById(id);
 function setCta(t){const el=$('rcta-t');el.textContent='';t.split('👇').forEach((p,i)=>{if(i){const h=document.createElement('b');h.className='hand';h.textContent='👇';el.appendChild(h)}if(p)el.appendChild(document.createTextNode(p))})}
-function ctaText(){const c=$('in-cta').value.trim();return c||('Comment mo: '+S.t1.name+' vs. '+S.t2.name+'? 👇')}
+// {t1} at {t2} sa kahit anong hook text ay papalitan ng pangalan ng team
+function tk(s){return String(s||'').replace(/\{t1\}/gi,S.t1.name).replace(/\{t2\}/gi,S.t2.name)}
+function ctaText(){const c=$('in-cta').value.trim();return c?tk(c):('Ipaglaban mo ang '+S.t1.name+' o '+S.t2.name+' sa comments 👇')}
 const COLORS=['#06b6d4','#3b82f6','#8b5cf6','#d946ef','#ec4899','#ef4444','#f97316','#facc15','#84cc16','#22c55e','#14b8a6','#92400e','#ffffff','#000000','#6b7280'];
 // Madilim na kulay (hal. itim): nilalagyan ng puting outline para kita sa madilim na background
 const _dk={};function dark(c){if(c in _dk)return _dk[c];const h=String(c).replace('#','');let v=false;if(h.length>=6){const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);v=(.2126*r+.7152*g+.0722*b)/255<.22}return _dk[c]=v}
@@ -931,20 +931,17 @@ const S={t1:{name:'PLAYER 1',color:COLORS[9],score:0},t2:{name:'PLAYER 2',color:
 const cv=$('c'),ctx=cv.getContext('2d'),app=$('app');
 let pops=[],rings=[],W=0,H=0,arena={x:0,y:0,r:150},mb={x:0,y:0,vx:0,vy:0,r:18,trail:[]},balls=[],parts=[];
 
-// YouTube Shorts safe zone: ang UI ng app ay tumatakip sa taas (~15%) at baba (~20%). Dito ito ina-adjust.
-const SAFE_TOP=.15,SAFE_BOT=.80;
 function resize(){
   const r=app.getBoundingClientRect(),d=window.devicePixelRatio||1;
   W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);
   // Reel-safe: ang feed preview ay nagka-crop ng ~15% sa taas at baba, kaya ilagay ang lahat sa gitnang 70%
-  const safe=$('safe').checked,top0=safe?H*SAFE_TOP:0,bot0=safe?H*SAFE_BOT:H;
+  const safe=$('safe').checked,top0=safe?H*0.15:0,bot0=safe?H*0.82:H;
   $('hud').style.top=top0+'px';
   const reel=$('reel').checked&&safe;app.classList.toggle('reel',reel);
   if(reel){
-    const ht=$('in-hook').value.trim(),ct=ctaText(),hb=$('rhook'),cb=$('rcta');
-    const hbTop=top0*.42,hbH=top0-hbTop; // ibinaba ang hook palayo sa top UI ng Shorts
-    hb.textContent=ht;hb.style.top=hbTop+'px';hb.style.height=hbH+'px';
-    const s1=W*.92/Math.max(4,ht.length*.62),cap=hbH*.7;hb.style.fontSize=(s1>=cap?cap:Math.min(cap,s1*1.8))+'px';
+    const ht=tk($('in-hook').value.trim()),ct=ctaText(),hb=$('rhook'),cb=$('rcta');
+    hb.textContent=ht;hb.style.top='0px';hb.style.height=top0+'px';
+    const s1=W*.92/Math.max(4,ht.length*.62),cap=top0*.44;hb.style.fontSize=(s1>=cap?cap:Math.min(cap,s1*1.8))+'px';
     setCta(ct);$('rcta-t').style.display=ct?'':'none';
 
 
@@ -956,16 +953,16 @@ function resize(){
   $('live').style.top=(top0+hudH+6)+'px';$('live').style.display=$('livechk').checked?'flex':'none';
   arena.x=W/2;
   if(safe){
-    const areaTop=top0+hudH+72,avail=(bot0-(reel?($('votechk').checked?84:50):20))-areaTop;
+    const areaTop=top0+hudH+72,avail=(bot0-(reel?50:20))-areaTop;
     arena.r=Math.max(60,Math.min(W*0.43,avail/2,H*0.3)*0.96);arena.y=areaTop+avail/2;
   }else{arena.y=H*0.5;arena.r=Math.min(W*0.43,H*0.3)}
   $('timer').style.top=(safe?top0+hudH+6:arena.y+arena.r+16)+'px';
   {const hf=$('hf'),fs=Math.max(16,Math.min(34,W*.062));hf.style.top=Math.max(top0+hudH+44,arena.y-arena.r*1.08)+'px';hf.dataset.fs=fs;fitHook()}
-  if(reel){const cb=$('rcta'),ct=ctaText();cb.style.top=(arena.y+arena.r+6)+'px';cb.style.height='40px';
+  if(reel){const cb=$('rcta'),ct=ctaText();cb.style.top=(arena.y+arena.r+10)+'px';cb.style.height='52px';
     cb.style.fontSize=Math.min(24,W*.9/Math.max(6,ct.length*.72+3))+'px';
     const rv=$('rvote'),rt=$('rvote-t');rv.style.display=$('votechk').checked?'':'none';rt.textContent='';
     [['👍',S.t1],['❤️',S.t2]].forEach(([e,t])=>{const sp=document.createElement('span');sp.textContent=e+' '+t.name;sp.style.color=t.color;sp.classList.toggle('dk',dark(t.color));rt.appendChild(sp)});
-    rv.style.top=(bot0-32)+'px';rv.style.height='30px';rv.style.fontSize=Math.min(17,W*.9/((S.t1.name.length+S.t2.name.length+8)*.62))+'px'}
+    rv.style.top=(bot0+14)+'px';rv.style.height='44px';rv.style.fontSize=Math.min(22,W*.9/((S.t1.name.length+S.t2.name.length+8)*.62))+'px'}
 }
 window.addEventListener('resize',resize);
 
@@ -978,10 +975,6 @@ function launchMother(){
 // ---- Timer ----
 const SLOW_AT=3,SLOW_TS=.3; // ilang segundo bago matapos ang slow-mo, at gaano kabagal (0.3 = 30% bilis)
 function showTime(){const m=Math.floor(S.left/60),s=S.left%60;$('time').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
-// Final Burst timing (segundo na natitira).
-// 30s: bilis x2 sa 12s, teaser sa 10s, FINAL BURST (label + x3.5) sa huling 6s. Ibang haba: dating timing.
-function burstPlan(d){if(d<=30)return{warm:12,hi:6,label:6,teaser:10};
-  const rs=Math.min(45,d*.4),rm=Math.min(20,d*.17);return{warm:rs,hi:rm,label:rs,teaser:Math.round(rs)+4}}
 function startTimer(){
   clearInterval(S.timer);
   S.timer=setInterval(()=>{
@@ -991,12 +984,12 @@ function startTimer(){
     {const tot=S.t1.score+S.t2.score,close=Math.abs(S.t1.score-S.t2.score)<=Math.max(5,Math.ceil(tot*.05));
      const slow=$('slowchk').checked&&S.dur>=20&&S.left<=SLOW_AT&&S.left>=1&&close;
      S.tsT=slow?SLOW_TS:1;app.classList.toggle('slowmo',slow);
-     if(slow)$('burst').textContent='😱 DIKIT! SLOW-MO';}
-    const BP=burstPlan(S.dur);if(S.dur>=20&&S.left===BP.teaser){const t3=$('in-hf3').value.trim();if(t3)showHook(t3,'',3000)}
+     if(slow){$('burst').textContent='😱 DIKIT! SLOW-MO';if(!S.slowHooked){S.slowHooked=1;const t4=$('in-hf4').value.trim();if(t4)showHook(t4,'',2800)}}}
+    const rs=Math.min(45,S.dur*.4);if(S.dur>=20&&S.left===Math.round(rs)+4){const t3=$('in-hf3').value.trim();if(t3)showHook(t3,'',3000)}
     if(S.left<=8&&S.left>=1)A.beep();else if(S.left<=0)A.popper();
-    if(S.left<=BP.hi)S.mult=3.5;else if(S.left<=BP.warm)S.mult=2;
+    const rushStart=Math.min(45,S.dur*.4),rushMax=Math.min(20,S.dur*.17);
+    if(S.left<=rushMax)S.mult=3.5;else if(S.left<=rushStart)S.mult=2;
     if(S.mult>=2)$('timer').classList.add('rush');
-    if(S.left<=BP.label)$('timer').classList.add('fb');
     S.rate=Math.max(120,S.base/S.mult);
     if(S.left<=0)gameOver();
   },1000);
@@ -1095,7 +1088,7 @@ let hfTimer=0;
 function fitHook(){const hf=$('hf'),fs=+hf.dataset.fs||24;[['hf1',1],['hf2',1.12]].forEach(([id,m])=>{const e=$(id),n=Math.max(6,e.textContent.length);e.style.fontSize=Math.min(fs*m,(W*.88)/(n*.66))+'px'})}
 function hideHook(){clearTimeout(hfTimer);$('hf').classList.remove('show')}
 function showHook(a,b,ms){hideHook();if(!$('hfchk').checked)return;
-  if(a===undefined){a=$('in-hf1').value.trim();b=$('in-hf2').value.trim()}if(!a&&!b)return;ms=ms||3000;
+  if(a===undefined){a=$('in-hf1').value.trim();b=$('in-hf2').value.trim()}a=tk(a);b=tk(b);if(!a&&!b)return;ms=ms||3000;
   $('hf1').textContent=a;$('hf1').style.display=a?'':'none';$('hf2').textContent=b;$('hf2').style.display=b?'':'none';fitHook();
   const hf=$('hf');void hf.offsetWidth;hf.style.animationDuration=ms+'ms';hf.classList.add('show');hfTimer=setTimeout(hideHook,ms)}
 function start(){S.started=true;S.playing=true;$('start').classList.add('hide');setPP();startTimer();
@@ -1130,8 +1123,8 @@ function gameOver(){
 }
 function reset(){
   hideHook();cdTok++;cdBusy=false;$('cdn').textContent='';$('cdvs').classList.remove('show');
-  clearInterval(S.timer);S.t1.score=S.t2.score=0;S.started=S.playing=S.over=false;S.left=S.dur;S.mult=1;S.rate=S.base;S.seeded=false;S.ts=S.tsT=1;app.classList.remove('slowmo');$('burst').textContent='🔥 FINAL BURST!';
-  balls=[];parts=[];pops=[];rings=[];bag=[];S.lead=S.p1=S.p2=0;$('timer').classList.remove('rush','fb');$('start').classList.remove('hide');$('modal').classList.add('hide');
+  clearInterval(S.timer);S.t1.score=S.t2.score=0;S.started=S.playing=S.over=false;S.left=S.dur;S.mult=1;S.rate=S.base;S.seeded=false;S.ts=S.tsT=1;S.slowHooked=0;app.classList.remove('slowmo');$('burst').textContent='🔥 FINAL BURST!';
+  balls=[];parts=[];pops=[];rings=[];bag=[];S.lead=S.p1=S.p2=0;$('timer').classList.remove('rush');$('start').classList.remove('hide');$('modal').classList.add('hide');
   launchMother();hud();showTime();setPP();
 }
 
@@ -1152,7 +1145,7 @@ function setColor(id,c){
 
 function applyNames(){
   [1,2].forEach(i=>{const n=S['t'+i].name;$('n'+i).textContent=n;$('mu'+i).textContent=n;$('vs'+i).textContent=n});
-  resize();scheduleLogos();
+  resize();
 }
 function colorNames(){document.querySelectorAll('#rvote-t span').forEach((e,i)=>{const c=S['t'+(i+1)].color;e.style.color=c;e.classList.toggle('dk',dark(c))});[1,2].forEach(i=>{const c=S['t'+i].color,d=dark(c);$('mu'+i).style.color=c;$('vs'+i).style.color=c;$('mu'+i).classList.toggle('dk',d);$('vs'+i).classList.toggle('dk',d)})}
 $('in-match').addEventListener('input',e=>{
@@ -1182,52 +1175,12 @@ $('safe').onchange=resize;$('livechk').onchange=resize;$('reel').onchange=resize
 
 window.onload=()=>{applyNames();launchMother();hud();showTime();requestAnimationFrame(render)};
 
-/* ===== LOGOS (thumbnail) =====
-   Pagkakasunod: 1) logong in-upload (naka-save sa browser, ayon sa pangalan)  2) file sa logos/<pangalan>.png
-   Hal: "Globe" -> logos/globe.png, "Smart" -> logos/smart.png (lowercase, walang space/simbolo) */
-const LOGO={1:null,2:null},LTOK={1:0,2:0};
-const slug=n=>String(n||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
-const logoSt=(id,t)=>{const e=$('lg-st'+id);if(e)e.textContent=t};
-const redrawThumb=()=>{if($('thumb').classList.contains('show'))drawThumb()};
-let lgT=0;function scheduleLogos(){clearTimeout(lgT);lgT=setTimeout(()=>{loadLogo(1);loadLogo(2)},350)}
-function loadLogo(id){
-  const key=slug(S['t'+id].name),tok=++LTOK[id];LOGO[id]=null;
-  if(!key||key==='player'+id){logoSt(id,'Ilagay muna ang pangalan ng team.');redrawThumb();return}
-  const ok=(im,msg)=>{if(LTOK[id]!==tok)return;LOGO[id]=im;logoSt(id,msg);redrawThumb()};
-  const fromFile=()=>{const im=new Image();im.onload=()=>ok(im,'✓ Gamit: logos/'+key+'.png');
-    im.onerror=()=>{if(LTOK[id]===tok){logoSt(id,'Walang logo. Mag-upload, o ilagay ang file sa logos/'+key+'.png');redrawThumb()}};im.src='logos/'+key+'.png'};
-  let d=null;try{d=localStorage.getItem('pba_logo:'+key)}catch(e){}
-  if(d){const im=new Image();im.onload=()=>ok(im,'✓ Naka-save na logo (in-upload mo)');im.onerror=fromFile;im.src=d}else fromFile();
-}
-function saveLogo(id,file){
-  const key=slug(S['t'+id].name);if(!file||!key||key==='player'+id){logoSt(id,'Ilagay muna ang pangalan ng team bago mag-upload.');return}
-  const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{
-    const m=Math.min(1,512/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');
-    c.width=Math.max(1,Math.round(im.naturalWidth*m));c.height=Math.max(1,Math.round(im.naturalHeight*m));
-    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-    try{localStorage.setItem('pba_logo:'+key,c.toDataURL('image/png'))}catch(e){logoSt(id,'Hindi ma-save sa browser, pero gagamitin ngayon lang.');LOGO[id]=im;redrawThumb();return}
-    loadLogo(id)};im.src=fr.result};fr.readAsDataURL(file)}
-async function pasteLogo(id){
-  try{const items=await navigator.clipboard.read();
-    for(const it of items){const t=it.types.find(x=>x.startsWith('image/'));if(t){saveLogo(id,await it.getType(t));return}}
-    logoSt(id,'Walang larawan sa clipboard. Mag-copy muna ng picture.')
-  }catch(e){logoSt(id,'Hindi mabasa ang clipboard. Gamitin ang 📁 Pumili, o Ctrl+V.')}}
-// Ctrl+V / paste kahit saan: mapupunta sa unang team na walang logo (kung may logo na ang dalawa, salitan)
-let lastPaste=2;
-document.addEventListener('paste',e=>{
-  const it=[...(e.clipboardData&&e.clipboardData.items||[])].find(i=>i.type.startsWith('image/'));if(!it)return;
-  e.preventDefault();const id=!LOGO[1]?1:!LOGO[2]?2:(lastPaste=3-lastPaste);saveLogo(id,it.getAsFile());
-  $('sheet').classList.add('open')});
-[1,2].forEach(id=>{
-  $('lg-p'+id).onclick=()=>pasteLogo(id);
-  $('lg-f'+id).onchange=e=>{saveLogo(id,e.target.files[0]);e.target.value=''};
-  $('lg-x'+id).onclick=()=>{const key=slug(S['t'+id].name);try{localStorage.removeItem('pba_logo:'+key)}catch(e){}loadLogo(id)};
-});
-
 /* ===== THUMBNAIL GENERATOR ===== */
 let tSeed=7;
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function nameLines(n){n=n.toUpperCase();if(n.length>9&&n.includes(' ')){let b=-1,m=n.length/2;for(let i=0;i<n.length;i++)if(n[i]===' '&&(b<0||Math.abs(i-m)<Math.abs(b-m)))b=i;return[n.slice(0,b),n.slice(b+1)]}return[n]}
+function setLogo(n,file){const t=S['t'+n];if(!file){t.logo=null;drawThumb();return}const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{t.logo=im;drawThumb()};im.src=r.result};r.readAsDataURL(file)}
+[1,2].forEach(n=>{$('logo'+n).onchange=e=>setLogo(n,e.target.files[0]);$('logox'+n).onclick=()=>{$('logo'+n).value='';setLogo(n,null)}});
 function drawThumb(){
   const cv=$('tcv'),box=$('thumb'),W=box.clientWidth,H=box.clientHeight;if(!W||!H)return;
   const dpr=Math.min(window.devicePixelRatio||1,3);cv.width=W*dpr;cv.height=H*dpr;
@@ -1235,8 +1188,7 @@ function drawThumb(){
   const c1=S.t1.color,c2=S.t2.color,R=rng(tSeed),yd=px=>H*.56-H*.12*(px/W),F='Outfit,system-ui,sans-serif';
   const cx=W/2,cy0=yd(W/2),mr=W*.12;
   /* Layout: lahat ng importante ay nasa gitnang 70% (safe sa feed crop) */
-  const hasLogo=!!(LOGO[1]||LOGO[2]);
-  const Y=hasLogo?{title:.145,hook:.235,l1:.325,n1:.41,n2:.59,l2:.675}:{title:.145,hook:.24,n1:.375,n2:.625};
+  const Y={title:.195,hook:.275,n1:.395,n2:.61};
   /* 1. Background: dalawang kulay na kalahati, hiwalay ng diagonal */
   x.fillStyle='#070914';x.fillRect(0,0,W,H);
   let g=x.createLinearGradient(0,0,0,H*.56);g.addColorStop(0,c1+'55');g.addColorStop(1,c1+'f0');
@@ -1252,7 +1204,7 @@ function drawThumb(){
   g=x.createRadialGradient(cx,cy0,0,cx,cy0,W*.75);g.addColorStop(0,'rgba(255,255,255,.28)');g.addColorStop(1,'rgba(255,255,255,0)');
   x.fillStyle=g;x.fillRect(0,0,W,H);x.restore();
   /* 3. Mga bola: sa gilid lang at sa pagitan ng text, para hindi nakakagulo sa pangalan */
-  const bands=hasLogo?[[.115,.17],[.185,.29],[.28,.455],[.545,.725]]:[[.115,.17],[.185,.295],[.31,.44],[.56,.69]];
+  const bands=[[.165,.225],[.235,.32],[.335,.46],[.55,.675]];
   const free=(bx,by,r)=>!bands.some(([a,b])=>by+r>H*a&&by-r<H*b&&bx+r>W*.04&&bx-r<W*.96)&&Math.hypot(bx-cx,by-cy0)>mr*1.55+r;
   const ball=(bx,by,r,c)=>{const q=x.createRadialGradient(bx-r*.35,by-r*.35,r*.08,bx,by,r);
     q.addColorStop(0,'rgba(255,255,255,.95)');q.addColorStop(.3,c);q.addColorStop(1,'rgba(0,0,0,.6)');
@@ -1279,34 +1231,29 @@ function drawThumb(){
   const title=(S.title||'POP BATTLE ARENA').toUpperCase();
   txt(title,cx,H*Y.title,Math.min(W*.05,fit(title,W*.8),W*.05),'rgba(255,255,255,.92)');
   /* Hook: sa taas, madilim na pill na may dilaw na border para kita kahit anong kulay ng team */
-  const hk=($('in-hook').value||'').trim().toUpperCase();
+  const hk=tk($('in-hook').value||'').trim().toUpperCase();
   if(hk){const sz=Math.min(W*.072,fit(hk,W*.7)),w=meas(hk,sz)+sz*1.8,h=sz*2.2,hy=H*Y.hook;
     x.save();x.shadowColor='rgba(250,204,21,.6)';x.shadowBlur=sz*.6;x.fillStyle='rgba(8,10,24,.9)';x.beginPath();
     if(x.roundRect)x.roundRect(cx-w/2,hy-h/2,w,h,h/2);else x.rect(cx-w/2,hy-h/2,w,h);x.fill();x.lineWidth=3;x.strokeStyle='#facc15';x.stroke();x.restore();
     x.font='900 '+sz+'px '+F;x.fillStyle='#facc15';x.fillText(hk,cx,hy+sz*.04)}
   /* Pangalan: isang linya, parehong laki, hindi lalagpas sa 80% ng lapad. Hahatiin lang kapag sobrang haba. */
-  const n1=S.t1.name.toUpperCase(),n2=S.t2.name.toUpperCase(),maxW=W*.8;
+  const n1=S.t1.name.toUpperCase(),n2=S.t2.name.toUpperCase(),maxW=(S.t1.logo||S.t2.logo)?W*.62:W*.8;
   const one=Math.min(W*.115,fit(n1,maxW),fit(n2,maxW));
   const two=one<W*.062&&(n1.includes(' ')||n2.includes(' '));
   const L1=two?nameLines(n1):[n1],L2=two?nameLines(n2):[n2];
   const fs=Math.min(two?W*.095:W*.115,...L1.concat(L2).map(l=>fit(l,maxW)));
-  const nm=(L,c,cy)=>L.forEach((l,i)=>txt(l,cx,cy+(i-(L.length-1)/2)*fs*1.02,fs,'#fff',c));
-  nm(L1,c1,H*Y.n1);nm(L2,c2,H*Y.n2);
+  const nm=(L,c,cy,logo)=>{let sh=0;
+    if(logo&&logo.complete&&logo.naturalWidth){const tw=Math.max(...L.map(l=>meas(l,fs))),d=Math.min(fs*1.3,W*.16),g=fs*.28;sh=(d+g)/2;const lx=cx+sh-tw/2-g-d/2;
+      x.save();x.shadowColor='rgba(0,0,0,.4)';x.shadowBlur=d*.15;x.fillStyle='#fff';x.beginPath();x.arc(lx,cy,d/2,0,7);x.fill();x.restore();
+      x.save();x.beginPath();x.arc(lx,cy,d/2,0,7);x.clip();const q=d*.78,k=Math.min(q/logo.naturalWidth,q/logo.naturalHeight),iw=logo.naturalWidth*k,ih=logo.naturalHeight*k;x.drawImage(logo,lx-iw/2,cy-ih/2,iw,ih);x.restore();
+      x.lineWidth=3;x.strokeStyle='#facc15';x.beginPath();x.arc(lx,cy,d/2,0,7);x.stroke()}
+    L.forEach((l,i)=>txt(l,cx+sh,cy+(i-(L.length-1)/2)*fs*1.02,fs,'#fff',c))};
+  nm(L1,c1,H*Y.n1,S.t1.logo);nm(L2,c2,H*Y.n2,S.t2.logo);
   /* VS badge */
   x.save();x.shadowColor='#facc15';x.shadowBlur=30;
   const mg=x.createRadialGradient(cx-mr*.3,cy0-mr*.3,mr*.1,cx,cy0,mr);mg.addColorStop(0,'#fff');mg.addColorStop(1,'#cbd5e1');
   x.fillStyle=mg;x.beginPath();x.arc(cx,cy0,mr,0,7);x.fill();x.lineWidth=mr*.14;x.strokeStyle='#f5b301';x.stroke();x.restore();
   x.font='900 '+mr*.95+'px '+F;x.fillStyle='#111';x.fillText('VS',cx,cy0+mr*.04);
-  /* Logo: puting rounded badge, nasa itaas ng pangalan ng Team 1 at ibaba ng pangalan ng Team 2 */
-  const logo=(im,ly,c)=>{if(!im||!im.naturalWidth)return;
-    const ph=Math.min(W*.15,H*.075),pad=ph*.14,ar=im.naturalWidth/im.naturalHeight,pmax=W*.42;
-    let ih=ph-pad*2,iw=ih*ar;if(iw>pmax-pad*2){iw=pmax-pad*2;ih=iw/ar}
-    const pw=Math.max(ph,iw+pad*2),h2=ih+pad*2,bx=cx-pw/2,by=ly-h2/2,rad=Math.min(h2*.3,26);
-    const path=()=>{x.beginPath();if(x.roundRect)x.roundRect(bx,by,pw,h2,rad);else x.rect(bx,by,pw,h2)};
-    x.save();x.shadowColor='rgba(0,0,0,.5)';x.shadowBlur=20;x.shadowOffsetY=6;x.fillStyle='#fff';path();x.fill();x.restore();
-    x.save();x.lineWidth=4;x.strokeStyle=gc(c);path();x.stroke();x.restore();
-    x.drawImage(im,cx-iw/2,ly-ih/2,iw,ih)};
-  if(hasLogo){logo(LOGO[1],H*Y.l1,c1);logo(LOGO[2],H*Y.l2,c2)}
 }
 let tHide=0;function armHide(){clearTimeout(tHide);tHide=setTimeout(()=>$('thumb').classList.add('hideui'),3000)}
 function openThumb(){$('sheet').classList.remove('open');const t=$('thumb');t.classList.remove('hideui');t.classList.add('show');drawThumb();armHide();
