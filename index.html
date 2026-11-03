@@ -735,7 +735,7 @@ input[type=range]{width:100%;accent-color:#818cf8}
 /* Start hook: lalabas sa unang 3 segundo ng laro para hindi umalis ang viewer */
 #hf{position:absolute;left:0;right:0;z-index:10;display:none;flex-direction:column;align-items:center;gap:6px;pointer-events:none;text-align:center;padding:0 12px}
 #hf.show{display:flex;animation:hfin 3s ease-out both}
-#hf b{display:block;white-space:nowrap;font-weight:900;text-transform:uppercase;line-height:1.05;padding:.15em .6em;border-radius:14px;background:rgba(4,5,13,.72);text-shadow:0 3px 0 rgba(0,0,0,.6)}
+#hf b{display:block;white-space:normal;max-width:94%;text-wrap:balance;font-weight:900;text-transform:uppercase;line-height:1.05;padding:.15em .6em;border-radius:14px;background:rgba(4,5,13,.72);text-shadow:0 3px 0 rgba(0,0,0,.6)}
 #hf1{color:#fff}#hf2{color:#facc15;text-shadow:0 3px 0 rgba(0,0,0,.6),0 0 22px rgba(250,204,21,.55)}
 @keyframes hfin{0%{opacity:0;transform:scale(.6)}10%{opacity:1;transform:scale(1.08)}16%{transform:scale(1)}82%{opacity:1}100%{opacity:0;transform:scale(1)}}
 #cdn{font-size:140px;line-height:1;font-weight:900;color:#fff;text-shadow:0 5px 0 rgba(0,0,0,.55),0 0 30px #818cf8}
@@ -843,9 +843,9 @@ input[type=range]{width:100%;accent-color:#818cf8}
       <label><input type="checkbox" id="reel" checked> Fill empty top/bottom (needs Reel-safe layout)</label>
       <label><input type="checkbox" id="livechk"> Show LIVE badge (lagyan lang kung totoong live)</label>
       <label>Hook text (top)</label>
-      <input type="text" id="in-hook" value="{t1} O {t2}? WAG KANG DUWAG" placeholder="Hook text (pwede ang {t1} at {t2})">
+      <input type="text" id="in-hook" value="{t1} O {t2}? WAG KANG DUDUWAG" placeholder="Hook text (pwede ang {t1} at {t2})">
       <label>Comment text (bottom)</label>
-      <input type="text" id="in-cta" value="" placeholder="Auto: I-comment mo: Team 1 vs. Team 2? 👇">
+      <input type="text" id="in-cta" value="" placeholder="Auto: Comment mo: Team 1 vs. Team 2? 👇">
       <label>Part 2 text (end card)</label>
       <input type="text" id="in-part2" value="" placeholder="Hal: Part 2: Sinigang vs Nilaga 🍲">
       <label><input type="checkbox" id="votechk" checked> Reaction vote bar (👍 vs ❤️) sa ibaba</label>
@@ -863,14 +863,14 @@ input[type=range]{width:100%;accent-color:#818cf8}
     </div>
     <div class="sec"><h4>Physics</h4>
       <div><div class="row"><span>Mother ball speed</span><span id="v-spd">7</span></div><input type="range" id="spd" min="1" max="30" value="7"></div>
-      <div><div class="row"><span>Mother ball size</span><span id="v-rad">11</span></div><input type="range" id="rad" min="10" max="30" value="11"></div>
-      <div><div class="row"><span>Falling ball size</span><span id="v-sr">13</span></div><input type="range" id="sr" min="6" max="20" value="13"></div>
+      <div><div class="row"><span>Mother ball size</span><span id="v-rad">14</span></div><input type="range" id="rad" min="10" max="30" value="14"></div>
+      <div><div class="row"><span>Falling ball size</span><span id="v-sr">16</span></div><input type="range" id="sr" min="6" max="20" value="16"></div>
       <label>Game duration</label>
-      <select id="dur"><option value="30" selected>30 seconds</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option></select>
+      <select id="dur"><option value="15" selected>15 seconds</option><option value="20">20 seconds</option><option value="30">30 seconds</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option></select>
       <label><input type="checkbox" id="snd" checked> Sound FX</label>
 <label><input type="checkbox" id="slowchk" checked> 🎞️ Slow-mo sa huling 3 sec kapag dikit ang score</label>
 <label><input type="checkbox" id="rubchk" checked> ⚖️ Dikit na finish (tinutulungan ang natatalo sa huling bahagi)</label>
-      <div><div class="row"><span>Volume ng pop</span><span id="v-vol">160%</span></div><input type="range" id="vol" min="50" max="300" value="160"></div>
+      <div><div class="row"><span>Volume ng pop</span><span id="v-vol">240%</span></div><input type="range" id="vol" min="50" max="300" value="240"></div>
       <label><input type="checkbox" id="safe" checked> Reel-safe layout (visible in feed preview)</label>
     </div>
   </div>
@@ -880,7 +880,7 @@ input[type=range]{width:100%;accent-color:#818cf8}
     <div id="wscore"></div>
     <div id="wname">Winner</div>
     <div id="wmsg">—</div>
-    <div id="wcta"><small>Sino ang susunod na ilalaban?</small><b>i-comment mo! 👇</b></div>
+    <div id="wcta"><small>Sino ang susunod na ilalaban?</small><b>Comment mo! 👇</b></div>
     <div id="wpart2"></div>
     <button class="btn alt" id="again">↻ PLAY AGAIN</button>
   </div></div>
@@ -898,7 +898,7 @@ const _dk={};function dark(c){if(c in _dk)return _dk[c];const h=String(c).replac
 function gc(c){return dark(c)?'#ffffff':c}
 
 // ---- Sound ----
-const A={ctx:null,on:true,vol:1.6,lastPop:0,
+const A={ctx:null,on:true,vol:2.4,lastPop:0,
  bus(){const c=this.ctx;if(!this.mg){this.mg=c.createGain();const k=c.createDynamicsCompressor();k.threshold.value=-14;k.knee.value=12;k.ratio.value=6;k.attack.value=.002;k.release.value=.12;this.mg.connect(k);k.connect(c.destination)}this.mg.gain.value=this.vol;return this.mg},
  tone(f,type,dur,vol,to){if(!this.on)return;try{this.ctx=this.ctx||new(window.AudioContext||window.webkitAudioContext)();const c=this.ctx,o=c.createOscillator(),g=c.createGain(),t=c.currentTime;
   o.type=type;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(to||f*1.8,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(this.bus());o.start();o.stop(t+dur)}catch(e){}},
@@ -927,7 +927,7 @@ const A={ctx:null,on:true,vol:1.6,lastPop:0,
 
 // ---- State ----
 const S={t1:{name:'PLAYER 1',color:COLORS[9],score:0},t2:{name:'PLAYER 2',color:COLORS[1],score:0},
- title:'POP BATTLE ARENA',started:false,playing:false,over:false,dur:30,left:30,timer:null,spd:3.5,rad:11,sr:13,base:320,rate:320,mult:1,lastSpawn:0,shake:0,lead:0,p1:0,p2:0,ts:1,tsT:1};
+ title:'POP BATTLE ARENA',started:false,playing:false,over:false,dur:15,left:15,timer:null,spd:3.5,rad:14,sr:16,base:260,rate:260,mult:1,lastSpawn:0,shake:0,lead:0,p1:0,p2:0,ts:1,tsT:1};
 const cv=$('c'),ctx=cv.getContext('2d'),app=$('app');
 let pops=[],rings=[],W=0,H=0,arena={x:0,y:0,r:150},mb={x:0,y:0,vx:0,vy:0,r:18,trail:[]},balls=[],parts=[];
 
@@ -953,11 +953,11 @@ function resize(){
   $('live').style.top=(top0+hudH+6)+'px';$('live').style.display=$('livechk').checked?'flex':'none';
   arena.x=W/2;
   if(safe){
-    const areaTop=top0+hudH+72,avail=(bot0-(reel?50:20))-areaTop;
-    arena.r=Math.max(60,Math.min(W*0.43,avail/2,H*0.3)*0.96);arena.y=areaTop+avail/2;
+    const areaTop=top0+hudH+58,avail=(bot0-(reel?34:12))-areaTop;
+    arena.r=Math.max(60,Math.min(W*0.46,avail/2,H*0.36)*0.97);arena.y=areaTop+avail/2;
   }else{arena.y=H*0.5;arena.r=Math.min(W*0.43,H*0.3)}
   $('timer').style.top=(safe?top0+hudH+6:arena.y+arena.r+16)+'px';
-  {const hf=$('hf'),fs=Math.max(16,Math.min(34,W*.062));hf.style.top=Math.max(top0+hudH+44,arena.y-arena.r*1.08)+'px';hf.dataset.fs=fs;fitHook()}
+  {const hf=$('hf'),fs=Math.max(22,Math.min(56,W*.1));hf.style.top=Math.max(top0+hudH+44,arena.y-arena.r*1.08)+'px';hf.dataset.fs=fs;fitHook()}
   if(reel){const cb=$('rcta'),ct=ctaText();cb.style.top=(arena.y+arena.r+10)+'px';cb.style.height='52px';
     cb.style.fontSize=Math.min(24,W*.9/Math.max(6,ct.length*.72+3))+'px';
     const rv=$('rvote'),rt=$('rvote-t');rv.style.display=$('votechk').checked?'':'none';rt.textContent='';
@@ -982,10 +982,10 @@ function startTimer(){
     S.left--;showTime();
     // Slow-mo: sa huling SLOW_AT segundo, kung dikit ang score
     {const tot=S.t1.score+S.t2.score,close=Math.abs(S.t1.score-S.t2.score)<=Math.max(5,Math.ceil(tot*.05));
-     const slow=$('slowchk').checked&&S.dur>=20&&S.left<=SLOW_AT&&S.left>=1&&close;
+     const slow=$('slowchk').checked&&S.dur>=12&&S.left<=SLOW_AT&&S.left>=1&&close;
      S.tsT=slow?SLOW_TS:1;app.classList.toggle('slowmo',slow);
      if(slow){$('burst').textContent='😱 DIKIT! SLOW-MO';if(!S.slowHooked){S.slowHooked=1;const t4=$('in-hf4').value.trim();if(t4)showHook(t4,'',2800)}}}
-    const rs=Math.min(45,S.dur*.4);if(S.dur>=20&&S.left===Math.round(rs)+4){const t3=$('in-hf3').value.trim();if(t3)showHook(t3,'',3000)}
+    const rs=Math.min(45,S.dur*.4);if(S.dur>=12&&S.left===Math.round(rs)+4){const t3=$('in-hf3').value.trim();if(t3)showHook(t3,'',3000)}
     if(S.left<=8&&S.left>=1)A.beep();else if(S.left<=0)A.popper();
     const rushStart=Math.min(45,S.dur*.4),rushMax=Math.min(20,S.dur*.17);
     if(S.left<=rushMax)S.mult=3.5;else if(S.left<=rushStart)S.mult=2;
@@ -1085,7 +1085,7 @@ function hud(){
 // ---- Game flow ----
 function setPP(){$('pp').textContent=S.playing?'⏸ Pause':(S.started?'▶ Resume':'▶ Start')}
 let hfTimer=0;
-function fitHook(){const hf=$('hf'),fs=+hf.dataset.fs||24;[['hf1',1],['hf2',1.12]].forEach(([id,m])=>{const e=$(id),n=Math.max(6,e.textContent.length);e.style.fontSize=Math.min(fs*m,(W*.88)/(n*.66))+'px'})}
+function fitHook(){const hf=$('hf'),fs=+hf.dataset.fs||24;[['hf1',1],['hf2',1.12]].forEach(([id,m])=>{const e=$(id),t=e.textContent,lw=Math.max(5,...t.split(/\s+/).map(w=>w.length)),n=Math.max(6,t.length);e.style.fontSize=Math.min(fs*m,(W*.84)/(lw*.7),(W*.84*1.9)/(n*.62))+'px'})}
 function hideHook(){clearTimeout(hfTimer);$('hf').classList.remove('show')}
 function showHook(a,b,ms){hideHook();if(!$('hfchk').checked)return;
   if(a===undefined){a=$('in-hf1').value.trim();b=$('in-hf2').value.trim()}a=tk(a);b=tk(b);if(!a&&!b)return;ms=ms||3000;
