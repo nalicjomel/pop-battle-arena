@@ -701,6 +701,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #fab.dim{opacity:0}
 .round{width:46px;height:46px;border-radius:50%;font-size:20px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
 button{font-family:inherit}
+#app.direct #start{display:none}
 #start,#modal{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:20px;transition:opacity .3s}
 #modal{background:rgba(4,5,13,.82);z-index:20;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .hide{opacity:0;pointer-events:none}
@@ -735,8 +736,8 @@ input[type=range]{width:100%;accent-color:#818cf8}
 /* Start hook: lalabas sa unang 3 segundo ng laro para hindi umalis ang viewer */
 #hf{position:absolute;left:0;right:0;z-index:10;display:none;flex-direction:column;align-items:center;gap:6px;pointer-events:none;text-align:center;padding:0 12px}
 #hf.show{display:flex;animation:hfin 3s ease-out both}
-#hf b{display:block;white-space:normal;max-width:94%;text-wrap:balance;font-weight:900;text-transform:uppercase;line-height:1.05;padding:.15em .6em;border-radius:14px;background:rgba(4,5,13,.72);text-shadow:0 3px 0 rgba(0,0,0,.6)}
-#hf1{color:#fff}#hf2{color:#facc15;text-shadow:0 3px 0 rgba(0,0,0,.6),0 0 22px rgba(250,204,21,.55)}
+#hf b{display:block;white-space:normal;max-width:94%;text-wrap:balance;font-weight:900;text-transform:uppercase;line-height:1.05;padding:.1em .3em;background:transparent;-webkit-text-stroke:.16em #000;paint-order:stroke fill;text-shadow:0 4px 14px rgba(0,0,0,.75)}
+#hf1{color:#fff}#hf2{color:#facc15}
 @keyframes hfin{0%{opacity:0;transform:scale(.6)}10%{opacity:1;transform:scale(1.08)}16%{transform:scale(1)}82%{opacity:1}100%{opacity:0;transform:scale(1)}}
 #cdn{font-size:140px;line-height:1;font-weight:900;color:#fff;text-shadow:0 5px 0 rgba(0,0,0,.55),0 0 30px #818cf8}
 #cdn.go{animation:cdpop .8s ease-out both}
@@ -869,6 +870,7 @@ input[type=range]{width:100%;accent-color:#818cf8}
       <select id="dur"><option value="15" selected>15 seconds</option><option value="20">20 seconds</option><option value="30">30 seconds</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option></select>
       <label><input type="checkbox" id="snd" checked> Sound FX</label>
 <label><input type="checkbox" id="slowchk" checked> 🎞️ Slow-mo sa huling 3 sec kapag dikit ang score</label>
+<label><input type="checkbox" id="directchk" checked> ⚡ Direct start: walang start menu, tap kahit saan sa laro para magsimula</label>
 <label><input type="checkbox" id="rubchk" checked> ⚖️ Dikit na finish (tinutulungan ang natatalo sa huling bahagi)</label>
       <div><div class="row"><span>Volume ng pop</span><span id="v-vol">240%</span></div><input type="range" id="vol" min="50" max="300" value="240"></div>
       <label><input type="checkbox" id="safe" checked> Reel-safe layout (visible in feed preview)</label>
@@ -1086,20 +1088,21 @@ function hud(){
 function setPP(){$('pp').textContent=S.playing?'⏸ Pause':(S.started?'▶ Resume':'▶ Start')}
 let hfTimer=0;
 function fitHook(){const hf=$('hf'),fs=+hf.dataset.fs||24;[['hf1',1],['hf2',1.12]].forEach(([id,m])=>{const e=$(id),t=e.textContent,lw=Math.max(5,...t.split(/\s+/).map(w=>w.length)),n=Math.max(6,t.length);e.style.fontSize=Math.min(fs*m,(W*.84)/(lw*.7),(W*.84*1.9)/(n*.62))+'px'})}
-function hideHook(){clearTimeout(hfTimer);$('hf').classList.remove('show')}
-function showHook(a,b,ms){hideHook();if(!$('hfchk').checked)return;
-  if(a===undefined){a=$('in-hf1').value.trim();b=$('in-hf2').value.trim()}a=tk(a);b=tk(b);if(!a&&!b)return;ms=ms||3000;
+let hfTimer2=0;function hideHook(){clearTimeout(hfTimer);clearTimeout(hfTimer2);$('hf').classList.remove('show')}
+function showHook(a,b,ms,seq){hideHook();if(!$('hfchk').checked)return;
+  if(a===undefined){a=$('in-hf1').value.trim();b=$('in-hf2').value.trim()}if(!seq){a=tk(a);b=tk(b)}if(!a&&!b)return;ms=ms||3000;
+  if(a&&b&&!seq){const h=ms/2;showHook(a,'',h,1);hfTimer2=setTimeout(()=>showHook('',b,h,1),h);return} // isa-isa, hindi sabay
   $('hf1').textContent=a;$('hf1').style.display=a?'':'none';$('hf2').textContent=b;$('hf2').style.display=b?'':'none';fitHook();
-  const hf=$('hf');void hf.offsetWidth;hf.style.animationDuration=ms+'ms';hf.classList.add('show');hfTimer=setTimeout(hideHook,ms)}
+  const hf=$('hf');void hf.offsetWidth;hf.style.animationDuration=ms+'ms';hf.classList.add('show');hfTimer=setTimeout(()=>hf.classList.remove('show'),ms)}
 function start(){S.started=true;S.playing=true;$('start').classList.add('hide');setPP();startTimer();
   if(!S.seeded){S.seeded=true;showHook();S.openUntil=Date.now()+3500;
     for(let i=0;i<24;i++){const t=nextTeam(),a=Math.random()*6.283,d=arena.r*(.3+Math.random()*.45);
       balls.push({x:arena.x+Math.cos(a)*d,y:arena.y+Math.sin(a)*d,vx:(Math.random()-.5)*1.5,vy:(Math.random()-.5)*1.5,r:S.sr,team:t,color:t===1?S.t1.color:S.t2.color,inArena:true})}}
   for(let i=0;i<14;i++)setTimeout(()=>{if(S.playing)spawn(nextTeam())},i*110)}
 let cdBusy=false,cdTok=0;
-function countdown(){if(cdBusy||S.started)return;cdBusy=true;const my=++cdTok,e=$('cdn'),v=$('cdvs');$('start').classList.add('hide');$('sheet').classList.remove('open');v.classList.add('show');
+function countdown(){if(cdBusy||S.started)return;cdBusy=true;const my=++cdTok,e=$('cdn'),v=$('cdvs');$('start').classList.add('hide');$('sheet').classList.remove('open');if(!$('directchk').checked)v.classList.add('show');
   // No 3-2-1: the battle starts instantly, "FIGHT!" flashes over the action
-  e.classList.remove('go');void e.offsetWidth;e.textContent='FIGHT!';e.style.fontSize='72px';e.classList.add('go');
+  e.classList.remove('go');void e.offsetWidth;if(!$('directchk').checked){e.textContent='FIGHT!';e.style.fontSize='72px';e.classList.add('go')}
   A.tone(1400,'square',.3,.15,1400);cdBusy=false;start();
   setTimeout(()=>{if(my===cdTok){e.textContent='';v.classList.remove('show')}},800)}
 function pause(){S.playing=false;setPP()}
@@ -1159,6 +1162,8 @@ $('in-title').addEventListener('input',e=>{S.title=e.target.value.trim()||'POP B
 $('go').onclick=countdown;$('again').onclick=reset;$('reset').onclick=reset;
 // Reel mode: walang Play Again button; tap kahit saan sa end card para ulitin (pagkatapos ng 1.5s)
 $('modal').onclick=()=>{if(app.classList.contains('reel')&&Date.now()-(S.overAt||0)>1500)reset()};
+app.classList.toggle('direct',$('directchk').checked);$('directchk').onchange=()=>app.classList.toggle('direct',$('directchk').checked);
+app.addEventListener('click',e=>{if(!$('directchk').checked||S.started||S.over||e.target.closest('#fab,#sheet,#thumb,#modal,button,input,label,select,a'))return;countdown()});
 $('pp').onclick=()=>S.playing?pause():(S.started?start():countdown());
 $('gear').onclick=()=>$('sheet').classList.add('open');
 $('close').onclick=()=>$('sheet').classList.remove('open');
